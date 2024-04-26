@@ -2,21 +2,19 @@
 
 struct ringbuffer // MY PRECIOUSSSS
 {
-        void * storage = nullptr;
+        void ** storage = nullptr;
         int32_t capacity = 0;
         int32_t start = 0;
-        int32_t end = 0;
+        int32_t end = 1; // NOTE: exclusive
 };
 
-// NOTE: these two methods return the number of elements inserted
-// TODO: error handling
-int32_t insert_bulk(ringbuffer * r, void * new_elems, int32_t count)
+// TODO: return insert status
+void insert_elem(ringbuffer * r, void * new_elem)
 {
-        if (r.end == r.start)
-                return 0;
+        if (r->start == r->end)
+                return;
+
+        r->storage[r->end++] = new_elem;
+        r->end %= r->capacity;
 }
 
-int32_t insert_elem(ringbuffer * r, void * new_elem)
-{
-        return insert_bulk(r, new_elem, 1);
-}
