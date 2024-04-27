@@ -9,12 +9,21 @@ struct ringbuffer // MY PRECIOUSSSS
 };
 
 // TODO: return insert status
-void insert_elem(ringbuffer * r, void * new_elem)
+void rb_push_elem(ringbuffer * r, void * new_elem)
 {
         if (r->start == r->end)
                 return;
 
         r->storage[r->end++] = new_elem;
         r->end %= r->capacity;
+}
+
+// Returns popped element
+// TODO: error handling
+void * rb_pop_elem(ringbuffer * r)
+{
+        void * tmp = r->storage[r->start++];
+        r->start %= r->capacity;
+        return tmp;
 }
 
