@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include "the_one_ring.h"
 
-void test_push_pop() {
+void test_push_pop()
+{
         ringbuffer r;
 
         rb_create(&r, 3);
@@ -22,13 +23,23 @@ void test_push_pop() {
         assert(*popped2 == 2);
         assert(*popped3 == 3);
 
-        free(r.storage);
+        rb_cleanup(&r);
+}
+
+void test_empty_pop()
+{
+        ringbuffer r;
+        rb_create(&r, 5);
+        assert(rb_pop_elem(&r) == NULL);
 }
 
 int main()
 {
         test_push_pop();
-        printf("Basic push-pop succeeded!\n");
+        printf("Basic push-pop test succeeded!\n");
+
+        test_empty_pop();
+        printf("Empty pop test succeeded!\n");
         return 0;
 }
 
