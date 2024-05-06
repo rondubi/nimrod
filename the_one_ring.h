@@ -1,19 +1,18 @@
+#include <string.h>
 /* Hacky attempt at a ring buffer implementation in C */
 
-struct ringbuffer // MY PRECIOUSSSS
+// TODO: init function
+typedef struct // MY PRECIOUSSSS
 {
-        void ** storage = nullptr;
-        int32_t capacity = 0;
-        int32_t start = 0;
-        int32_t end = 1; // NOTE: exclusive
-};
+        void ** storage;
+        int32_t capacity;
+        int32_t start;
+        int32_t end; // NOTE: exclusive
+} ringbuffer;
 
 // TODO: return insert status
 void rb_push_elem(ringbuffer * r, void * new_elem)
 {
-        if (r->start == r->end)
-                return;
-
         r->storage[r->end++] = new_elem;
         r->end %= r->capacity;
 }
@@ -37,13 +36,13 @@ void rb_push_bulk(ringbuffer * r, void ** new_elems, int32_t count)
         // Two-part copy
         const int32_t first_copy_count = r->capacity - r->end > count ? count : r->capacity - r->end;
         memcpy(r->storage + r->end, new_elems, first_copy_count * sizeof(void *));
-        r->end = (r->end + effective_count) % r->capacity;
+        r->end = (r->end + first_copy_count) % r->capacity;
         if (first_copy_count >= count)
                 return;
 
         const int32_t second_copy_count = r->start < count - first_copy_count ? r->start : count - first_copy_count;
         memcpy(r->storage, new_elems + first_copy_count, second_copy_count * sizeof(void *));
-        r->end = (r->end + effective_count) % r->capacity;
+        r->end = (r->end + second_copy_count) % r->capacity;
 }
 
 // Returns popped element
