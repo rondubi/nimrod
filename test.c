@@ -4,12 +4,9 @@
 #include "the_one_ring.h"
 
 void test_push_pop() {
-        ringbuffer r = {
-                .storage = malloc(3 * sizeof(void *)),
-                .capacity = 3,
-                .start = 0,
-                .end = 0,
-        };
+        ringbuffer r;
+
+        rb_create(&r, 3);
 
         int a = 1, b = 2, c = 3;
 

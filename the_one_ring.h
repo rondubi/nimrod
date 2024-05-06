@@ -1,7 +1,7 @@
+#include <stdlib.h>
 #include <string.h>
 /* Hacky attempt at a ring buffer implementation in C */
 
-// TODO: init function
 typedef struct // MY PRECIOUSSSS
 {
         void ** storage;
@@ -9,6 +9,16 @@ typedef struct // MY PRECIOUSSSS
         int32_t start;
         int32_t end; // NOTE: exclusive
 } ringbuffer;
+
+void rb_create(ringbuffer * r, int32_t capacity_desired)
+{
+        *r = (ringbuffer) {
+                .storage = malloc(capacity_desired * sizeof(void *)),
+                .capacity = capacity_desired,
+                .start = 0,
+                .end = 0,
+        };
+}
 
 // TODO: return insert status
 void rb_push_elem(ringbuffer * r, void * new_elem)
