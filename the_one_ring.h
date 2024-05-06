@@ -51,6 +51,7 @@ int32_t rb_push_elem(ringbuffer * r, void * new_elem)
 // Will not push past rb fullness
 int32_t rb_push_bulk(ringbuffer * r, void ** new_elems, int32_t count)
 {
+        /*
         if (rb_full(r))
                 return 0;
 
@@ -58,6 +59,8 @@ int32_t rb_push_bulk(ringbuffer * r, void ** new_elems, int32_t count)
                 0 : r->capacity - r->start - r->count;
 
         const int32_t head_qty = count - tail_qty > r->capacity - r->count ? 
+*/
+        return 0;
 }
 
 // TODO: pop bulk
