@@ -11,9 +11,9 @@ void test_push_pop()
 
         int a = 1, b = 2, c = 3;
 
-        rb_push_elem(&r, &a);
-        rb_push_elem(&r, &b);
-        rb_push_elem(&r, &c);
+        assert(rb_push_elem(&r, &a));
+        assert(rb_push_elem(&r, &b));
+        assert(rb_push_elem(&r, &c));
 
         int * popped1 = (int *)rb_pop_elem(&r);
         int * popped2 = (int *)rb_pop_elem(&r);
@@ -31,7 +31,11 @@ void test_empty_pop()
         ringbuffer r;
         rb_create(&r, 5);
         assert(rb_pop_elem(&r) == NULL);
+        rb_cleanup(&r);
 }
+
+// TODO: don't push on full ringbuffer
+// TODO: bulk tests
 
 int main()
 {

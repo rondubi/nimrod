@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 /* Hacky attempt at a ring buffer implementation in C */
@@ -25,29 +26,46 @@ void rb_cleanup(ringbuffer * r)
         free(r->storage);
 }
 
-// TODO: return insert status
-void rb_push_elem(ringbuffer * r, void * new_elem)
+bool rb_full(const ringbuffer * r)
 {
-        // TODO: error handling
+        return r->count == r->capacity;
+}
+
+bool rb_empty(const ringbuffer * r)
+{
+        return !r->count;
+}
+
+// Returns number of elements inserted
+// Will not push if rb full
+int32_t rb_push_elem(ringbuffer * r, void * new_elem)
+{
+        if (rb_full(r))
+                return 0;
+
         r->storage[r->count++] = new_elem;
-
-        if (r->count > r->capacity)
-        {
-                r->count = r->capacity;
-                r->start++;
-        }
+        return 1;
 }
 
-void rb_push_bulk(ringbuffer * r, void ** new_elems, int32_t count)
+// Returns number of elements inserted
+// Will not push past rb fullness
+int32_t rb_push_bulk(ringbuffer * r, void ** new_elems, int32_t count)
 {
-        // TODO: rewrite
+        if (rb_full(r))
+                return 0;
+
+        const int32_t tail_qty = (r->start + r->count) > r->capacity ?
+                0 : r->capacity - r->start - r->count;
+
+        const int32_t head_qty = count - tail_qty > r->capacity - r->count ? 
 }
+
+// TODO: pop bulk
 
 // Returns popped element
-// TODO: error handling
 void * rb_pop_elem(ringbuffer * r)
 {
-        if (r->count == 0)
+        if (rb_empty(r))
                 return NULL;
 
         void * tmp = r->storage[r->start++];
