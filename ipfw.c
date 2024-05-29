@@ -1,6 +1,7 @@
 #include "ipfw.h"
 
 #include <assert.h>
+#include <stdlib.h>
 
 // Some site with the IPFW BNF: http://info.iet.unipi.it/~luigi/ip_dummynet/original.html
 
@@ -11,52 +12,44 @@
 // TODO: do we need to know what pipes are valid?
 struct rule
 {
+        // NOTE: no pattern matching at the moment
         int32_t ipv4_from;
         int32_t ipv4_to;
         enum action_t action;
 };
 
-struct rule_table_t
-{
-        int32_t capacity;
-        int32_t numrules;
-        struct rule * rules;
-};
-
-static struct rule_table_t rule_table;
+#define RULE_TABLE_CAPACITY (1 << 16  - 1)
+static struct rule * rule_table;
 
 void rules_init()
 {
-        rule_table.capacity = 10;
-        rule_table.numrules = 0;
-        rule_table.rules = malloc(sizeof(struct rule) * rule_table.capacity);
-}
-
-void resize_rule_table()
-{
-        rule_table.capacity *= 2;
-        assert(rule_table.capacity <= (1 << 16));
-        rule_table.rules = realloc(rule_table.rules, rule_table.capacity * sizeof(struct rule));
+        rule_table = malloc(sizeof(struct rule) * RULE_TABLE_CAPACITY);
+        memset(rule_table, -1, RULE_TABLE_CAPACITY);
 }
 
 int rule_add(int32_t rule_number, enum action_t action, int32_t ipv4_from, int32_t ipv4_to)
 {
-        if (rule_table.capacity <= rule_number)
-        {
-                resize_rule_table();
-        }
+        assert(RULE_TABLE_CAPACITY > rule_number);;
 
-        rule_table.rules[rule_number] = (struct rule) {.action = action, .ipv4_from = ipv4_from, .ipv4_to = ipv4_to, };
-        ++rule_table.numrules;
+        rule_table[rule_number] = (struct rule) {.action = action, .ipv4_from = ipv4_from, .ipv4_to = ipv4_to, };
 
         return 0;
 }
 
 int rule_apply(packet_t packet)
 {
-}
+        for (int i = 0; i < RULE_TABLE_CAPACITY; ++i)
+        {
+                if (rule_table[i]->ipv4_from == -1 && rule_table[i]->ipv4_to == -1)
+                {
+                        continue;
+                }
+                
+                const int result = try_match(packet, i);
+                if (result != 0)
+                        return result;
+        }
 
-int rule_config(int pipe_number, void * options)
-{
+        return default_action(packet);
 }
 
