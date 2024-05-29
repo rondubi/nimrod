@@ -1,20 +1,21 @@
+#include <stdlib.h>
 
 enum action_t
 {
-        IN,
-        OUT
+        ALLOW,
+        DENY
+        // TODO: more actions
 };
 
+void rules_init();
+
 // NOTE: should return status
-// TODO: define what options are
-int rule_add(int rule_number, enum action_t action, void * options);
+// NOTE: does not prevent overriding of existing rules
+int rule_add(int rule_number, enum action_t action, int32_t ipv4_from, int32_t ipv4_to);
 
 // NOTE: should return status
 // TODO: wtf is a packet_t
 int rule_apply(packet_t packet);
 
-// TODO: define what options are
-int rule_config(int pipe_number, void * options);
-
-// TODO: queue configuration
+// TODO: pipe and queue configuration
 
