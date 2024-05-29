@@ -36,11 +36,25 @@ int rule_add(int32_t rule_number, enum action_t action, int32_t ipv4_from, int32
         return 0;
 }
 
+// NOTE: return 0 if no match, return status otherwise
+int try_match(packet_t packet, int i)
+{
+        if (!(packet.ipv4_from == rule_table[i]->ipv4_from && packet.ipv4_to == rule_table[i]->ipv4_to))
+                return 0;
+
+        return perform_action(packet, i);
+}
+
+int uninitialized_rule(int i)
+{
+        return rule_table[i]->ipv4_from == -1 && rule_table[i]->ipv4_to == -1;
+}
+
 int rule_apply(packet_t packet)
 {
         for (int i = 0; i < RULE_TABLE_CAPACITY; ++i)
         {
-                if (rule_table[i]->ipv4_from == -1 && rule_table[i]->ipv4_to == -1)
+                if (uninitialized_rule(i))
                 {
                         continue;
                 }
