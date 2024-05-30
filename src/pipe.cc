@@ -96,7 +96,6 @@ private:
                 clock::time_point begin_send;
         };
 
-
         struct queue
         {
                 std::size_t capacity = 0;
@@ -142,7 +141,6 @@ private:
         {
                 throw "todo";
         }
-
 
         clock::time_point next_begin_send()
         {
