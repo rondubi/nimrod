@@ -11,7 +11,10 @@ int Rules::add(int32_t rule_number, action action, int32_t ipv4_from, int32_t ip
 {
         assert(RULE_TABLE_CAPACITY > rule_number);;
 
-        rule_table[rule_number] = Rules::Rule {.action = action, .ipv4_from = ipv4_from, .ipv4_to = ipv4_to, };
+        rule_table[rule_number] = Rules::Rule {
+                .action = action,
+                .matches = [=](packet p){ return p.ipv4_from == ipv4_from && p.ipv4_to == ipv4_to; },
+        };
 
         return 0;
 }
@@ -20,8 +23,7 @@ int Rules::apply_rules(packet packet) const
 {
         for (const auto & [rnum, rule] : rule_table)
         {
-                // TODO: handle custom matching
-                if (rule.ipv4_from == packet.ipv4_from && rule.ipv4_to == packet.ipv4_to)
+                if (rule.matches(packet))
                 {
                         switch (rule.action)
                         {
