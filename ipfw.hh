@@ -15,6 +15,11 @@ struct packet
         int32_t ipv4_to;
 };
 
+// TODO: status indicator enum
+constexpr int FAIL = -5;
+constexpr int DENIED = -3;
+
+
 struct Rules
 {
         Rules(std::function<int(packet)> fn) : rule_table{}, packet_send_fn{fn} {}

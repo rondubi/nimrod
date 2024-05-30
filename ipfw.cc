@@ -16,16 +16,22 @@ int Rules::add(int32_t rule_number, action action, int32_t ipv4_from, int32_t ip
         return 0;
 }
 
-#define FAIL -5 // ????
-
 int Rules::apply_rules(packet packet) const
 {
         for (const auto & [rnum, rule] : rule_table)
         {
+                // TODO: handle custom matching
                 if (rule.ipv4_from == packet.ipv4_from && rule.ipv4_to == packet.ipv4_to)
                 {
-                        // TODO: handle other actions
-                        return packet_send_fn(packet);
+                        switch (rule.action)
+                        {
+                                case ALLOW:
+                                        return packet_send_fn(packet);
+                                case DENY:
+                                        return DENIED;
+                                default:
+                                        return FAIL;
+                        }
                 }
         }
 
