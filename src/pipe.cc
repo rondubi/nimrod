@@ -16,6 +16,13 @@ using clock = std::chrono::steady_clock;
 class pipe::impl
 {
 public:
+        explicit impl(const pipe_options & options)
+            : queue_{options.queue.size}
+            , link_{options.link.bytes_per_second,
+                    options.link.propagation_delay}
+        {
+        }
+
         packet recv_blocking()
         {
                 std::unique_lock lock{mutex_};
@@ -92,9 +99,9 @@ private:
 
         struct queue
         {
+                std::size_t capacity = 0;
+                std::size_t pending = 0;
                 std::queue<sent_packet> queue;
-                std::size_t pending;
-                std::size_t capacity;
 
                 std::size_t available_capacity() const
                 {
@@ -156,6 +163,11 @@ private:
 
 
 pipe::~pipe() = default;
+
+pipe::pipe(const pipe_options & options)
+    : id{options.id}, pimpl_{std::make_unique<impl>(options)}
+{
+}
 
 packet pipe::recv_blocking()
 {
