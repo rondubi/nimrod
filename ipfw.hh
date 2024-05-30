@@ -19,7 +19,6 @@ struct packet
 constexpr int FAIL = -5;
 constexpr int DENIED = -3;
 
-
 struct Rules
 {
         Rules(std::function<int(packet)> fn) : rule_table{}, packet_send_fn{fn} {}
