@@ -3,3 +3,4 @@
 
 # Ignnore executable
 test
+build/
