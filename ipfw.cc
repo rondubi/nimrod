@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
+int pipe_send_packet(struct packet_t packet);
+
 // Some site with the IPFW BNF: http://info.iet.unipi.it/~luigi/ip_dummynet/original.html
 
 // NOTE: assume for now that all protocols are IPv4
@@ -37,7 +39,7 @@ int rule_add(int32_t rule_number, enum action_t action, int32_t ipv4_from, int32
 }
 
 // NOTE: return 0 if no match, return status otherwise
-int try_match(packet_t packet, int i)
+int try_match(struct packet_t packet, int i)
 {
         if (!(packet.ipv4_from == rule_table[i]->ipv4_from && packet.ipv4_to == rule_table[i]->ipv4_to))
                 return 0;
@@ -45,7 +47,7 @@ int try_match(packet_t packet, int i)
         return perform_action(packet, i);
 }
 
-int uninitialized_rule(int i)
+int is_uninitialized_rule(int i)
 {
         return rule_table[i]->ipv4_from == -1 && rule_table[i]->ipv4_to == -1;
 }
@@ -54,7 +56,7 @@ int rule_apply(packet_t packet)
 {
         for (int i = 0; i < RULE_TABLE_CAPACITY; ++i)
         {
-                if (uninitialized_rule(i))
+                if (is_uninitialized_rule(i))
                 {
                         continue;
                 }
