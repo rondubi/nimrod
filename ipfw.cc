@@ -1,4 +1,4 @@
-#include "ipfw.h"
+#include "ipfw.hh"
 
 #include <cassert>
 #include <cstdlib>
@@ -9,7 +9,7 @@ int pipe_send_packet(packet packet);
 
 #define RULE_TABLE_CAPACITY (1 << 16  - 1)
 
-int Rules::rule_add(int32_t rule_number, action action, int32_t ipv4_from, int32_t ipv4_to)
+int Rules::add(int32_t rule_number, action action, int32_t ipv4_from, int32_t ipv4_to)
 {
         assert(RULE_TABLE_CAPACITY > rule_number);;
 
@@ -18,30 +18,10 @@ int Rules::rule_add(int32_t rule_number, action action, int32_t ipv4_from, int32
         return 0;
 }
 
-// NOTE: return 0 if no match, return status otherwise
-int try_match(packet_t packet, int i)
-{
-        if (!(packet.ipv4_from == rule_table[i]->ipv4_from && packet.ipv4_to == rule_table[i]->ipv4_to))
-                return 0;
+#define FAIL -5 // ????
 
-        return perform_action(packet, i);
-}
-
-int Rules::rule_apply(packet packet) const
+int Rules::apply_rules(packet packet) const
 {
-//        for (int i = 0; i < RULE_TABLE_CAPACITY; ++i)
-//        {
-//                if (is_uninitialized_rule(i))
-//                {
-//                        continue;
-//                }
-//                
-//                const int result = try_match(packet, i);
-//                if (result != 0)
-//                        return result;
-//        }
-//
-//        return default_action(packet);
         for (const auto & [rnum, rule] : rules_table)
         {
                 if (rule.ipv4_from == packet.ipv4_from && rule.ipv4_to == packet.ipv4_to)
@@ -50,5 +30,7 @@ int Rules::rule_apply(packet packet) const
                         return pipe_send_packet(packet);
                 }
         }
+
+        return FAIL;
 }
 
