@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <map>
+#include <functional>
 
 enum action
 {
@@ -16,7 +17,7 @@ struct packet
 
 struct Rules
 {
-        Rules() : rules_table();
+        Rules(std::function<int(packet)> fn) : rule_table{}, packet_send_fn{fn} {}
 
         // NOTE: should return status
         // NOTE: does not prevent overriding of existing rules
@@ -24,7 +25,7 @@ struct Rules
 
         // NOTE: should return status
         // TODO: wtf is a packet_t
-        int apply_rules(packet packet);
+        int apply_rules(packet packet) const;
         // TODO: pipe and queue configuration
 
 private:
@@ -44,6 +45,7 @@ private:
                 // bool matches(packet p) const;
         };
 
-        std::map<Rule> rules_table;
+        std::map<int, Rule> rule_table;
+        std::function<int(packet)> packet_send_fn;
 };
 
