@@ -4,3 +4,4 @@
 # Ignnore executable
 test
 build/
+.cache/
