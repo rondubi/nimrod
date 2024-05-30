@@ -1,62 +1,52 @@
 #pragma once
 
-#include <chrono>
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
+#include <optional>
+
+#include "ipfw.hh"
 
 namespace nimrod
 {
-class queue
+
+class pipe
 {
 public:
-        bool empty() const { return pending() == 0; }
-        bool full() const { return pending() >= capacity_; }
-
-        std::size_t pending() const { return pending_; }
-        std::size_t capacity() const { return capacity_; }
-
-private:
-        std::size_t pending_;
-        std::size_t capacity_;
-};
-
-class link
-{
-public:
-        std::size_t bytes_per_second() const { return bytes_per_second_; }
-
-        std::chrono::nanoseconds propagation_delay() const
+        class id
         {
-                return propagation_delay_;
-        }
+        public:
+                friend bool operator==(const id & lhs, const id & rhs)
+                {
+                        return lhs.inner == rhs.inner;
+                }
 
-private:
-        std::size_t bytes_per_second_;
-        std::chrono::nanoseconds propagation_delay_;
-};
+                friend bool operator!=(const id & lhs, const id & rhs)
+                {
+                        return !(lhs == rhs);
+                }
 
-class pipe_id
-{
-public:
-        friend bool operator==(const pipe_id & lhs, const pipe_id & rhs)
-        {
-                return lhs.inner == rhs.inner;
-        }
 
-        friend bool operator!=(const pipe_id & lhs, const pipe_id & rhs)
-        {
-                return !(lhs == rhs);
-        }
+        private:
+                std::uint32_t inner;
+        };
+
+        ~pipe();
+
+        packet recv_blocking();
+
+        std::optional<packet> try_recv();
+
+        bool send(packet && p);
 
 
 private:
-        std::uint32_t inner;
-};
+        class impl;
 
-struct pipe
-{
-        queue queue;
-        link link;
-        pipe_id id;
+        std::unique_ptr<impl> pimpl_;
+
+public:
+        const id id;
 };
 }
