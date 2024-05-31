@@ -140,6 +140,18 @@ bool test_pattern_match_length_match()
                 && status3 == 0 && res4 == 0 && status4 == 13 && res5 == 0 && status == 13;
 }
 
+bool test_custom_handler()
+{
+        int status = 0;
+
+        Rules r([&](packet p){ status = 13; return 0; });
+
+        r.add(1, action::ALLOW, 1, 1, {[&](packet p){ status = 14; return 0; }});
+        int res = r.apply_rules({1, 1});
+
+        return res == 0 && status == 14;
+}
+
 int main()
 {
         assert(test_basic_allow_rule());
@@ -168,6 +180,9 @@ int main()
 
         assert(test_pattern_match_length_match());
         printf("Finished pattern match length match test!\n");
+
+        assert(test_custom_handler());
+        printf("Finished custom handler test!\n");
 
         return 0;
 }
