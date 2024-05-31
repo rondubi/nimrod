@@ -53,6 +53,20 @@ bool test_pri_out_of_order()
         return res == 0 && status == 13;
 }
 
+bool test_pattern_match_or()
+{
+        int status = 0;
+
+        Rules r([&](packet p){ status = 13; return 0; });
+
+        r.add(1, action::ALLOW, new Or(new ExactMatch(1), new ExactMatch(2)), new ExactMatch(1));
+        const int res1 = r.apply_rules({1, 1});
+        const int status1 = status;
+        const int res2 = r.apply_rules({2, 1});
+
+        return res1 == 0 && status1 == 13 && res2 == 0 && status == 13;
+}
+
 int main()
 {
         assert(test_basic_allow_rule());
@@ -66,6 +80,9 @@ int main()
 
         assert(test_pri_out_of_order());
         printf("Finished priority out of order test!\n");
+
+        assert(test_pattern_match_or());
+        printf("Finished pattern match OR test!\n");
 
         return 0;
 }
