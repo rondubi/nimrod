@@ -17,18 +17,10 @@ public:
                 receivers_.push_back(std::move(r));
         }
 
-        void close() override
-        {
-                for (auto & r : receivers_)
-                        r->close();
-                receivers_.clear();
-        }
-
         recv_result recv(packet * out) override
         {
                 if (receivers_.empty())
                         return recv_result::closed;
-
 
                 auto start = pos_;
                 auto end = pos_ + receivers_.size();
@@ -50,8 +42,6 @@ public:
                         {
                                 case recv_result::ok:
                                         return recv_result::ok;
-                                case recv_result::empty:
-                                        continue;
                                 case recv_result::closed: {
                                         receivers_.erase(pos);
                                         continue;
@@ -59,10 +49,9 @@ public:
                         }
                 }
 
-                return recv_result::empty;
+                return recv_result::closed;
         }
 
-        recv_result recv_blocking(packet * out) override;
 
 private:
         std::vector<std::shared_ptr<receiver>> receivers_;

@@ -17,7 +17,7 @@ enum class send_result
         ok,
 };
 
-struct sender : closer
+struct sender
 {
         virtual ~sender() = default;
         // virtual send_result try_send(packet && p) = 0;
@@ -27,14 +27,12 @@ struct sender : closer
 enum class recv_result
 {
         closed,
-        empty,
         ok,
 };
 
-struct receiver : closer
+struct receiver
 {
         virtual ~receiver() = default;
         virtual recv_result recv(packet * out) = 0;
-        virtual recv_result recv_blocking(packet * out) = 0;
 };
 }

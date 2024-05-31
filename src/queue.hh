@@ -18,11 +18,10 @@ public:
         {
         }
 
-        // send_result try_send(packet && p) override;
+
         send_result send(packet && p) override;
         recv_result recv(packet * out) override;
-        recv_result recv_blocking(packet * out) override;
-        void close() override;
+        // void close() override;
 
         bool full() const { return (head_ - tail_) >= size_; }
         bool empty() const { return head_ == tail_; }

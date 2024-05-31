@@ -44,18 +44,6 @@ recv_result queue::recv(packet * out)
 {
         if (closed_)
                 return recv_result::closed;
-        if (empty())
-                return recv_result::empty;
-
-        *out = std::move(front());
-        pop();
-        return recv_result::ok;
-}
-
-recv_result queue::recv_blocking(packet * out)
-{
-        if (closed_)
-                return recv_result::closed;
 
         auto head = head_.load();
         const auto tail = tail_.load();
@@ -79,12 +67,12 @@ recv_result queue::recv_blocking(packet * out)
         }
 }
 
-void queue::close()
-{
-        closed_.store(true);
-        head_.notify_one();
-        tail_.notify_one();
-}
+// void queue::close()
+// {
+//         closed_.store(true);
+//         head_.notify_one();
+//         tail_.notify_one();
+// }
 
 void queue::push(packet && p)
 {
