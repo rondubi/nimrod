@@ -28,6 +28,7 @@ struct Rules
         // returns status
         // NOTE: does not prevent overriding of existing rules
         int add(int rule_number, action action, int32_t ipv4_from, int32_t ipv4_to);
+        int add(int rule_number, action action, std::unique_ptr<Expr> && from_expr, std::unique_ptr<Expr> && to_expr);
 
         // NOTE: should return status
         int apply_rules(packet packet) const;

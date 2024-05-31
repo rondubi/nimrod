@@ -8,18 +8,20 @@
 
 constexpr int RULE_TABLE_CAPACITY = ((1 << 16)  - 1);
 
-int Rules::add(int32_t rule_number, action action, int32_t ipv4_from, int32_t ipv4_to)
+int Rules::add(int32_t rule_number, action action, std::unique_ptr<Expr> && from_expr, std::unique_ptr<Expr> && to_expr)
 {
         assert(RULE_TABLE_CAPACITY > rule_number);;
-        Rules::Rule r {
-                .act = action,
-                .to_expr = std::make_unique<ExactMatch>(ipv4_to),
-                .from_expr = std::make_unique<ExactMatch>(ipv4_from),
-        };
 
-        // rule_table.insert({rule_number, Rules::Rule{action, new ExactMatch(ipv4_to), new ExactMatch(ipv4_from)}});
-        rule_table[rule_number] = std::move(r);
+        rule_table[rule_number] = Rules::Rule {
+                .act = action,
+                .to_expr = std::forward<std::unique_ptr<Expr>>(to_expr),
+                .from_expr = std::forward<std::unique_ptr<Expr>>(from_expr),
+        };
         return 0;
+}
+int Rules::add(int32_t rule_number, action action, int32_t ipv4_from, int32_t ipv4_to)
+{
+        return add(rule_number, action, std::make_unique<ExactMatch>(ipv4_from), std::make_unique<ExactMatch>(ipv4_to));
 }
 
 int Rules::apply_rules(packet packet) const
