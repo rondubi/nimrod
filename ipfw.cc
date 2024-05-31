@@ -33,7 +33,7 @@ int Rules::apply_rules(packet packet) const
                         switch (rule.act)
                         {
                                 case ALLOW:
-                                        return packet_send_fn(packet);
+                                        return default_handle_fn(packet);
                                 case DENY:
                                         return DENIED;
                                 default:

@@ -23,7 +23,7 @@ constexpr int DENIED = -3;
 
 struct Rules
 {
-        Rules(std::function<int(packet)> fn) : rule_table{}, packet_send_fn{fn} {}
+        Rules(std::function<int(packet)> default_fn) : rule_table(), default_handle_fn(default_fn) {}
 
         // returns status
         // NOTE: does not prevent overriding of existing rules
@@ -51,6 +51,6 @@ private:
         };
 
         std::map<int, Rule> rule_table;
-        std::function<int(packet)> packet_send_fn;
+        std::function<int(packet)> default_handle_fn;
 };
 
