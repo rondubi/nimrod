@@ -84,6 +84,22 @@ bool test_pattern_match_not()
         return res1 == FAIL && status1 == 0 && res2 == DENIED && status == 0;
 }
 
+bool test_pattern_match_and()
+{
+        int status = 0;
+
+        Rules r([&](packet p){ status = 13; return 0; });
+
+        r.add(1, action::ALLOW, new And(new Not(new ExactMatch(1)), new Not(new ExactMatch(2))), new ExactMatch(1));
+        const int res1 = r.apply_rules({1, 1});
+        const int status1 = status;
+        const int res2 = r.apply_rules({2, 1});
+        const int status2 = status;
+        const int res3 = r.apply_rules({3, 1});
+
+        return res1 == FAIL && status1 == 0 && res2 == FAIL && status2 == 0 && res3 == 0 && status == 13;
+}
+
 int main()
 {
         assert(test_basic_allow_rule());
@@ -103,6 +119,9 @@ int main()
 
         assert(test_pattern_match_not());
         printf("Finished pattern match NOT test!\n");
+
+        assert(test_pattern_match_and());
+        printf("Finished pattern match AND test!\n");
 
         return 0;
 }
