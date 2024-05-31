@@ -13,7 +13,7 @@ typedef struct // MY PRECIOUSSSS
 
 void rb_create(ringbuffer * r, int32_t capacity_desired)
 {
-        *r = (ringbuffer) {
+        *r = (ringbuffer){
                 .storage = malloc(capacity_desired * sizeof(void *)),
                 .capacity = capacity_desired,
                 .start = 0,
@@ -76,4 +76,3 @@ void * rb_pop_elem(ringbuffer * r)
         r->count--;
         return tmp;
 }
-

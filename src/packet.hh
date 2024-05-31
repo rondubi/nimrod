@@ -1,0 +1,51 @@
+#pragma once
+
+#include <cstddef>
+#include <optional>
+#include <variant>
+
+#include "proto/ipv4.hh"
+
+namespace nimrod
+{
+enum class packet_kind
+{
+        none,
+        ipv4,
+};
+
+class packet
+{
+public:
+        packet() = default;
+
+        packet(ipv4_packet packet)
+            : kind_{packet_kind::ipv4}, packet_{std::move(packet)}
+        {
+        }
+
+        std::size_t total_size() const
+        {
+                struct visitor
+                {
+                        std::size_t operator()(const ipv4_packet & packet)
+                        {
+                                return packet.total_size();
+                        }
+
+                        std::size_t operator()(const std::nullopt_t &)
+                        {
+                                return 0;
+                        }
+                };
+
+                return std::visit(visitor{}, packet_);
+        }
+
+        packet_kind kind() const { return kind_; }
+
+private:
+        packet_kind kind_ = packet_kind::none;
+        std::variant<std::nullopt_t, ipv4_packet> packet_{std::nullopt};
+};
+}

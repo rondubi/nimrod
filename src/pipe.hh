@@ -1,74 +1,73 @@
-#pragma once
+// #pragma once
 
-#include <cassert>
-#include <chrono>
-#include <cstddef>
-#include <cstdint>
-#include <memory>
-#include <optional>
-
-#include "ipfw.hh"
-
-namespace nimrod
-{
-struct pipe_options;
-
-class pipe_id
-{
-public:
-        friend bool operator==(const pipe_id & lhs, const pipe_id & rhs)
-        {
-                return lhs.inner == rhs.inner;
-        }
-
-        friend bool operator!=(const pipe_id & lhs, const pipe_id & rhs)
-        {
-                return !(lhs == rhs);
-        }
+// #include <cassert>
+// #include <chrono>
+// #include <cstddef>
+// #include <cstdint>
+// #include <memory>
+// #include <optional>
 
 
-private:
-        std::uint32_t inner;
-};
+// namespace nimrod
+// {
+// struct pipe_options;
 
-class pipe
-{
-public:
-        ~pipe();
+// class pipe_id
+// {
+// public:
+//         friend bool operator==(const pipe_id & lhs, const pipe_id & rhs)
+//         {
+//                 return lhs.inner == rhs.inner;
+//         }
 
-        explicit pipe(const pipe_options & options);
-
-        packet recv_blocking();
-
-        std::optional<packet> try_recv();
-
-        bool send(packet && p);
+//         friend bool operator!=(const pipe_id & lhs, const pipe_id & rhs)
+//         {
+//                 return !(lhs == rhs);
+//         }
 
 
-private:
-        class impl;
+// private:
+//         std::uint32_t inner;
+// };
 
-        std::unique_ptr<impl> pimpl_;
+// class pipe
+// {
+// public:
+//         ~pipe();
 
-public:
-        const pipe_id id;
-};
+//         explicit pipe(const pipe_options & options);
 
-struct link_options
-{
-        std::size_t bytes_per_second;
-        std::chrono::nanoseconds propagation_delay;
-};
+//         packet recv_blocking();
 
-struct queue_options
-{
-        std::size_t size;
-};
+//         std::optional<packet> try_recv();
 
-struct pipe_options
-{
-        pipe_id id;
-        queue_options queue;
-        link_options link;
-};
-}
+//         bool send(packet && p);
+
+
+// private:
+//         class impl;
+
+//         std::unique_ptr<impl> pimpl_;
+
+// public:
+//         const pipe_id id;
+// };
+
+// struct link_options
+// {
+//         std::size_t bytes_per_second;
+//         std::chrono::nanoseconds propagation_delay;
+// };
+
+// struct queue_options
+// {
+//         std::size_t size;
+// };
+
+// struct pipe_options
+// {
+//         pipe_id id;
+//         queue_options queue;
+//         link_options link;
+// };
+// }
