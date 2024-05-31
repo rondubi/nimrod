@@ -84,7 +84,9 @@ send_result link::send(packet && p)
                 std::chrono::time_point_cast<clock::time_point::duration>(
                         arrival),
                 std::move(p)});
+        lock.unlock();
 
+        std::this_thread::sleep_until(start + send_time);
 
         shared.cond.notify_one();
 

@@ -1,5 +1,4 @@
 #include <memory>
-#include <thread>
 #include <vector>
 
 #include "core.hh"
@@ -7,10 +6,8 @@
 #include "proto/ipv4.hh"
 #include "receiver/limit.hh"
 #include "receiver/repeat.hh"
-#include "sender/delay.hh"
 #include "sender/link.hh"
 #include "sender/log.hh"
-
 
 using namespace std::chrono_literals;
 
@@ -27,7 +24,6 @@ int main()
 
         auto limited_repeat = std::make_shared<nimrod::limit>(16, repeat);
 
-        auto sink = nimrod::logger{};
 
         std::shared_ptr<nimrod::sender> send;
 
