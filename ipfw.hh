@@ -13,8 +13,8 @@ enum action
 
 struct packet
 {
-        int32_t ipv4_from;
         int32_t ipv4_to;
+        int32_t ipv4_from;
 };
 
 // TODO: status indicator enum
@@ -27,8 +27,8 @@ struct Rules
 
         // returns status
         // NOTE: does not prevent overriding of existing rules
-        int add(int rule_number, action action, int32_t ipv4_from, int32_t ipv4_to);
-        int add(int rule_number, action action, Expr * from_expr, Expr * to_expr);
+        int add(int rule_number, action action, int32_t ipv4_to, int32_t ipv4_from);
+        int add(int rule_number, action action, Expr * to_expr, Expr * from_expr);
 
         // NOTE: should return status
         int apply_rules(packet packet) const;

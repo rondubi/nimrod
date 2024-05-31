@@ -8,7 +8,7 @@
 
 constexpr int RULE_TABLE_CAPACITY = ((1 << 16)  - 1);
 
-int Rules::add(int32_t rule_number, action action, Expr * from_expr, Expr * to_expr)
+int Rules::add(int32_t rule_number, action action, Expr * to_expr, Expr * from_expr)
 {
         assert(RULE_TABLE_CAPACITY > rule_number);;
 
@@ -19,9 +19,9 @@ int Rules::add(int32_t rule_number, action action, Expr * from_expr, Expr * to_e
         };
         return 0;
 }
-int Rules::add(int32_t rule_number, action action, int32_t ipv4_from, int32_t ipv4_to)
+int Rules::add(int32_t rule_number, action action, int32_t ipv4_to, int32_t ipv4_from)
 {
-        return add(rule_number, action, new ExactMatch(ipv4_from), new ExactMatch(ipv4_to));
+        return add(rule_number, action, new ExactMatch(ipv4_to), new ExactMatch(ipv4_from));
 }
 
 int Rules::apply_rules(packet packet) const
