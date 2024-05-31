@@ -100,6 +100,24 @@ bool test_pattern_match_and()
         return res1 == FAIL && status1 == 0 && res2 == FAIL && status2 == 0 && res3 == 0 && status == 13;
 }
 
+bool test_pattern_match_any()
+{
+        int status = 0;
+
+        Rules r([&](packet p){ status = 13; return 0; });
+
+        r.add(1, action::ALLOW, new LengthMatch(0, 0), new ExactMatch(1));
+        const int res1 = r.apply_rules({1, 1});
+        const int status1 = status;
+        status = 0;
+        const int res2 = r.apply_rules({2, 1});
+        const int status2 = status;
+        status = 0;
+        const int res3 = r.apply_rules({3, 1});
+
+        return res1 == 0 && status1 == 13 && res2 == 0 && status2 == 13 && res3 == 0 && status == 0;
+}
+
 int main()
 {
         assert(test_basic_allow_rule());
@@ -122,6 +140,9 @@ int main()
 
         assert(test_pattern_match_and());
         printf("Finished pattern match AND test!\n");
+
+        assert(test_pattern_match_and());
+        printf("Finished pattern match * test!\n");
 
         return 0;
 }
