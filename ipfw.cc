@@ -1,4 +1,5 @@
 #include "ipfw.hh"
+#include "pattern.hh"
 
 #include <cassert>
 #include <cstdlib>
@@ -11,10 +12,7 @@ int Rules::add(int32_t rule_number, action action, int32_t ipv4_from, int32_t ip
 {
         assert(RULE_TABLE_CAPACITY > rule_number);;
 
-        rule_table[rule_number] = Rules::Rule {
-                .action = action,
-                .matches = [=](packet p){ return p.ipv4_from == ipv4_from && p.ipv4_to == ipv4_to; },
-        };
+        rule_table.insert({rule_number, Rules::Rule{action, new ExactMatch(ipv4_to), new ExactMatch(ipv4_from)}});
 
         return 0;
 }
@@ -25,7 +23,7 @@ int Rules::apply_rules(packet packet) const
         {
                 if (rule.matches(packet))
                 {
-                        switch (rule.action)
+                        switch (rule.act)
                         {
                                 case ALLOW:
                                         return packet_send_fn(packet);

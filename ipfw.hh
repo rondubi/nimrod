@@ -2,6 +2,8 @@
 #include <map>
 #include <functional>
 
+#include "pattern.hh"
+
 enum action
 {
         ALLOW,
@@ -37,8 +39,16 @@ private:
 
         struct Rule
         {
-                action action;
-                std::function<bool(packet)> matches;
+                action act;
+                std::unique_ptr<Expr> to_expr;
+                std::unique_ptr<Expr> from_expr;
+                
+                Rule(action a_, Expr * to_, Expr * from_) : act(a_), to_expr(to_), from_expr(from_) {}
+
+                bool matches(packet p) const
+                {
+                        return to_expr->match(p.ipv4_to) && from_expr->match(p.ipv4_from);
+                }
         };
 
         std::map<int, Rule> rule_table;
