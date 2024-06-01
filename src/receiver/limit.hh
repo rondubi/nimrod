@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "core.hh"
+#include "packet.hh"
 
 namespace nimrod
 {
@@ -33,6 +34,8 @@ public:
                         remaining_ = 0;
                         receiver_ = {};
                 }
+                else
+                        out->passed_along();
 
                 return res;
         }

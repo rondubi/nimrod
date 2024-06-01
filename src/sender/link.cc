@@ -63,6 +63,8 @@ link::link(
 
 send_result link::send(packet && p)
 {
+        p.passed_along();
+
         auto & shared = *shared_state_;
 
         const auto send_time = shared.send_time(p);

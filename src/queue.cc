@@ -5,8 +5,11 @@ namespace nimrod
 {
 send_result queue::send(packet && p)
 {
+        p.passed_along();
+
         if (closed_)
                 return send_result::closed;
+
 
         const auto head = head_.load();
         auto tail = tail_.load();

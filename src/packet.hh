@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <functional>
 #include <optional>
 #include <variant>
 
@@ -46,8 +47,15 @@ public:
 
         ipv4_packet_header & ipv4_header();
 
+        const ipv4_packet_header & ipv4_header() const;
+
+        void passed_along();
+
+        void set_passed_long_callback(std::function<void(const packet &)> cb);
+
 private:
         packet_kind kind_ = packet_kind::none;
         std::variant<std::nullopt_t, ipv4_packet> packet_{std::nullopt};
+        std::function<void(const packet &)> passed_along_callback_;
 };
 }

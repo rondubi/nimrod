@@ -13,6 +13,7 @@ public:
         recv_result recv(packet * out) override
         {
                 *out = p_;
+                out->passed_along();
                 return recv_result::ok;
         }
 

@@ -1,3 +1,4 @@
+#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -9,6 +10,7 @@
 #include "receiver/repeat.hh"
 #include "sender/link.hh"
 #include "sender/log.hh"
+#include "sender/time.hh"
 
 using namespace std::chrono_literals;
 
@@ -31,7 +33,14 @@ int main()
 
         send = std::make_shared<nimrod::logger>();
         // send = std::make_shared<nimrod::fixed_delay>(10ms, std::move(send));
-        send = std::make_shared<nimrod::link>(send, 1000ms, 50);
+        send = std::make_shared<nimrod::link>(send, 10ms, 1024);
+        send = std::make_shared<nimrod::timer>(
+                "link 1",
+                [](auto name, const auto & packet, auto duration) {
+                        std::cout << name << " took " << duration
+                                  << " to send packet" << "\n";
+                },
+                send);
 
         fuse(*limited_repeat, *send);
 
