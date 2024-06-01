@@ -53,40 +53,68 @@ namespace nimrod
 {
 struct blackhole : sender
 {
-        send_result send(packet && p)
-        {
-                return send_result::ok;
-        }
+        send_result send(packet && p) { return send_result::ok; }
 };
 }
 
 int main()
 {
         // Assuming just one flow
-
-        Generator g;
-
-        auto stage_d = std::make_shared<nimrod::blackhole>();
-        auto stage_c_r = std::make_shared<nimrod::link>(d, 0, 1024);
-        auto stage_c_d = std::make_shared<nimrod::link>(c_r, 20ms, std::numeric_limits<size_t>::max());
-        auto stage_c_0 = std::make_shared<nimrod::link>(c_d, 0, std::numeric_limits<size_t>::max());
-        auto stage_b_100 = std::make_shared<nimrod::rulesender>(stage_c_0->send);
-        // TODO: add 99 rules to b_100
-        auto stage_b = std::make_shared<nimrod::rulesender>(stage_b_100->send);
-        // TODO: add a rule to b
-        stage_b->
-
-        int i = 0;
-        auto get_next_packet = [&](){
+        auto get_next_packet = [&]()
+        {
+                static int i = 0;
                 return nimrod::ipv4_packet{
                     .header = {
-                        .src = {{0, 1, }[i++ % 3]},
+                        .src = {{0, 1, 100}[i++ % 3]},
                         .dst = {0},
                         .total_length = 32,
                     },
                     .payload = std::vector<std::byte>(8, std::byte{}) // models UDP header
                 };
         };
+
+        auto stage_d = std::make_shared<nimrod::blackhole>();
+        auto stage_c_r = std::make_shared<nimrod::link>(d, 0, 1024);
+        auto stage_c_d = std::make_shared<nimrod::link>(
+                c_r, 20ms, std::numeric_limits<size_t>::max());
+        auto stage_c_0 = std::make_shared<nimrod::link>(
+                c_d, 0, std::numeric_limits<size_t>::max());
+        auto stage_b_100
+                = std::make_shared<nimrod::rulesender>(stage_c_0->send);
+        for (int i = 2; i <= 100; ++i)
+        {
+                stage_b_100->rule_table.add(
+                        i,
+                        nimrod::action::allow,
+                        new nimrod::And(
+                                new nimrod::Not(new nimrod::ExactMatch(1)),
+                                new nimrod::ExactMatch(100)),
+                        new nimrod::ExactMatch(0));
+        }
+        auto stage_b = std::make_shared<nimrod::rulesender>(stage_b_100->send);
+        stage_b->rule_table.add(
+                1,
+                nimrod::action::allow,
+                new nimrod::Not(new nimrod::ExactMatch(1)),
+                new nimrod::ExactMatch(0));
+
+        // TODO: figure out a way to drop packets with src 0
+        auto start_time = std::chrono::high_resolution_clock::now();
+
+        while (true)
+        {
+                auto pkt = get_next_packet();
+                if (pkt.header.src == 0)
+                        continue;
+                auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time);
+                if (elapsed_time >= std::chrono::milliseconds(1500)) {
+                        break;
+                }
+
+                stage_b->send(pkt);
+        }
+
+        return 0;
 }
 
 void fuse(nimrod::receiver & r, nimrod::sender & s)

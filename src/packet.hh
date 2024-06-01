@@ -43,7 +43,7 @@ public:
 
         packet_kind kind() const { return kind_; }
 
-        ipv4_packet_header & ipv4_header() const;
+        ipv4_packet_header & ipv4_header();
 
         const ipv4_packet_header & ipv4_header() const;
 
