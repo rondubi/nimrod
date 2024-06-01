@@ -10,7 +10,6 @@
 #include "packet.hh"
 #include "pattern.hh"
 #include "proto/ipv4.hh"
-#include "sender.hh"
 
 namespace nimrod
 {

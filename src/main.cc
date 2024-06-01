@@ -2,6 +2,7 @@
 #include <memory>
 #include <vector>
 
+#include "rules/pattern.hh"
 #include "core.hh"
 #include "packet.hh"
 #include "proto/ipv4.hh"
