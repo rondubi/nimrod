@@ -4,4 +4,5 @@
 # Ignnore executables
 test
 build/
+.cache/
 ipfw_test
