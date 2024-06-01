@@ -18,7 +18,7 @@ bool test_basic_allow_rule()
                         return 0;
                 });
 
-        r.add(1, action::ALLOW, 1, 1);
+        r.add(1, action::allow, 1, 1);
         int res = r.apply_rules({1, 1});
 
         return res == 0 && status == 13;
@@ -35,7 +35,7 @@ bool test_basic_deny_rule()
                         return 0;
                 });
 
-        r.add(1, action::DENY, 1, 1);
+        r.add(1, action::deny, 1, 1);
         int res = r.apply_rules({1, 1});
 
         return res == DENIED && status == 0;
@@ -52,8 +52,8 @@ bool test_pri_in_order()
                         return 0;
                 });
 
-        r.add(1, action::ALLOW, 1, 1);
-        r.add(2, action::DENY, 1, 1);
+        r.add(1, action::allow, 1, 1);
+        r.add(2, action::deny, 1, 1);
         int res = r.apply_rules({1, 1});
 
         return res == 0 && status == 13;
@@ -70,8 +70,8 @@ bool test_pri_out_of_order()
                         return 0;
                 });
 
-        r.add(2, action::DENY, 1, 1);
-        r.add(1, action::ALLOW, 1, 1);
+        r.add(2, action::deny, 1, 1);
+        r.add(1, action::allow, 1, 1);
         int res = r.apply_rules({1, 1});
 
         return res == 0 && status == 13;
@@ -89,7 +89,7 @@ bool test_pattern_match_or()
                 });
 
         r.add(1,
-              action::ALLOW,
+              action::allow,
               new Or(new ExactMatch(1), new ExactMatch(2)),
               new ExactMatch(1));
         const int res1 = r.apply_rules({1, 1});
@@ -114,7 +114,7 @@ bool test_pattern_match_not()
                         return 0;
                 });
 
-        r.add(1, action::DENY, new Not(new ExactMatch(1)), new ExactMatch(1));
+        r.add(1, action::deny, new Not(new ExactMatch(1)), new ExactMatch(1));
         const int res1 = r.apply_rules({1, 1});
         const int status1 = status;
         const int res2 = r.apply_rules({2, 1});
@@ -134,7 +134,7 @@ bool test_pattern_match_and()
                 });
 
         r.add(1,
-              action::ALLOW,
+              action::allow,
               new And(new Not(new ExactMatch(1)), new Not(new ExactMatch(2))),
               new ExactMatch(1));
         const int res1 = r.apply_rules({1, 1});
@@ -158,7 +158,7 @@ bool test_pattern_match_any()
                         return 0;
                 });
 
-        r.add(1, action::ALLOW, new LengthMatch(0, 0), new ExactMatch(1));
+        r.add(1, action::allow, new LengthMatch(0, 0), new ExactMatch(1));
         const int res1 = r.apply_rules({1, 1});
         const int status1 = status;
         status = 0;
@@ -183,7 +183,7 @@ bool test_pattern_match_length_match()
                 });
 
         r.add(1,
-              action::ALLOW,
+              action::allow,
               new LengthMatch(0xffffffff, 3),
               new ExactMatch(1));
         const int res1 = r.apply_rules({0, 1});
@@ -214,7 +214,7 @@ bool test_custom_handler()
                 });
 
         r.add(1,
-              action::ALLOW,
+              action::allow,
               1,
               1,
               {[&](packet p)

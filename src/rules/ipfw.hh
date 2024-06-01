@@ -9,8 +9,8 @@ namespace nimrod
 {
 enum class action
 {
-        ALLOW,
-        DENY
+        allow,
+        deny
         // TODO: more actions
 };
 

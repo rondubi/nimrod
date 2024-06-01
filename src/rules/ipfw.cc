@@ -50,10 +50,10 @@ int Rules::apply_rules(packet packet) const
                 {
                         switch (rule.act)
                         {
-                                case action::ALLOW:
+                                case action::allow:
                                         return rule.handler.value_or(
                                                 default_handle_fn)(packet);
-                                case action::DENY:
+                                case action::deny:
                                         return DENIED;
                                 default:
                                         return FAIL;
