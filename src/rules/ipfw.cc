@@ -6,13 +6,20 @@
 
 // Some site with the IPFW BNF: http://info.iet.unipi.it/~luigi/ip_dummynet/original.html
 
-constexpr int RULE_TABLE_CAPACITY = ((1 << 16)  - 1);
-
-int Rules::add(int32_t rule_number, action action, Expr * to_expr, Expr * from_expr, std::optional<PacketHandler> handler)
+namespace nimrod
 {
-        assert(RULE_TABLE_CAPACITY > rule_number);;
+constexpr int RULE_TABLE_CAPACITY = ((1 << 16) - 1);
 
-        rule_table[rule_number] = Rules::Rule {
+int Rules::add(
+        int32_t rule_number,
+        action action,
+        Expr * to_expr,
+        Expr * from_expr,
+        std::optional<PacketHandler> handler)
+{
+        assert(RULE_TABLE_CAPACITY > rule_number);
+
+        rule_table[rule_number] = Rules::Rule{
                 .act = action,
                 .to_expr = std::unique_ptr<Expr>(to_expr),
                 .from_expr = std::unique_ptr<Expr>(from_expr),
@@ -20,9 +27,19 @@ int Rules::add(int32_t rule_number, action action, Expr * to_expr, Expr * from_e
         };
         return 0;
 }
-int Rules::add(int32_t rule_number, action action, int32_t ipv4_to, int32_t ipv4_from, std::optional<PacketHandler> handler)
+int Rules::add(
+        int32_t rule_number,
+        action action,
+        int32_t ipv4_to,
+        int32_t ipv4_from,
+        std::optional<PacketHandler> handler)
 {
-        return add(rule_number, action, new ExactMatch(ipv4_to), new ExactMatch(ipv4_from), handler);
+        return add(
+                rule_number,
+                action,
+                new ExactMatch(ipv4_to),
+                new ExactMatch(ipv4_from),
+                handler);
 }
 
 int Rules::apply_rules(packet packet) const
@@ -33,9 +50,10 @@ int Rules::apply_rules(packet packet) const
                 {
                         switch (rule.act)
                         {
-                                case ALLOW:
-                                        return rule.handler.value_or(default_handle_fn)(packet);
-                                case DENY:
+                                case action::ALLOW:
+                                        return rule.handler.value_or(
+                                                default_handle_fn)(packet);
+                                case action::DENY:
                                         return DENIED;
                                 default:
                                         return FAIL;
@@ -45,4 +63,4 @@ int Rules::apply_rules(packet packet) const
 
         return FAIL;
 }
-
+}

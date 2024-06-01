@@ -5,7 +5,9 @@
 
 #include "pattern.hh"
 
-enum action
+namespace nimrod
+{
+enum class action
 {
         ALLOW,
         DENY
@@ -26,12 +28,23 @@ using PacketHandler = std::function<int(packet)>;
 
 struct Rules
 {
-        Rules(PacketHandler default_fn) : rule_table(), default_handle_fn(default_fn) {}
+        Rules(PacketHandler default_fn)
+            : rule_table(), default_handle_fn(default_fn)
+        {
+        }
 
         // returns status
         // NOTE: does not prevent overriding of existing rules
-        int add(int rule_number, action action, int32_t ipv4_to, int32_t ipv4_from, std::optional<PacketHandler> handler = {});
-        int add(int rule_number, action action, Expr * to_expr, Expr * from_expr, std::optional<PacketHandler> handler = {});
+        int add(int rule_number,
+                action action,
+                int32_t ipv4_to,
+                int32_t ipv4_from,
+                std::optional<PacketHandler> handler = {});
+        int add(int rule_number,
+                action action,
+                Expr * to_expr,
+                Expr * from_expr,
+                std::optional<PacketHandler> handler = {});
 
         // NOTE: should return status
         int apply_rules(packet packet) const;
@@ -47,10 +60,11 @@ private:
                 std::unique_ptr<Expr> to_expr;
                 std::unique_ptr<Expr> from_expr;
                 std::optional<PacketHandler> handler;
-                
+
                 bool matches(packet p) const
                 {
-                        return to_expr->match(p.ipv4_to) && from_expr->match(p.ipv4_from);
+                        return to_expr->match(p.ipv4_to)
+                                && from_expr->match(p.ipv4_from);
                 }
         };
 
@@ -58,3 +72,4 @@ private:
         PacketHandler default_handle_fn;
 };
 
+}
