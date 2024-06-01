@@ -1,7 +1,6 @@
 #include "ipfw.hh"
 
 #include <cassert>
-#include <iostream>
 
 using namespace nimrod;
 
