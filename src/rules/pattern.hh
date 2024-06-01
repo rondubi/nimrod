@@ -1,12 +1,15 @@
 #pragma once
 
+#include <cstdint>
+#include <cstdio>
 #include <memory>
+#include "proto/ipv4.hh"
 
 namespace nimrod
 {
 struct Expr
 {
-        virtual bool match(int val) const = 0;
+        virtual bool match(ipv4_addr val) const = 0;
         virtual ~Expr() = default;
 };
 
@@ -17,7 +20,7 @@ struct And : Expr
 
         And(Expr * a_, Expr * b_) : a(a_), b(b_) { }
 
-        bool match(int v) const { return a->match(v) && b->match(v); }
+        bool match(ipv4_addr v) const { return a->match(v) && b->match(v); }
 };
 
 struct Or : Expr
@@ -27,7 +30,7 @@ struct Or : Expr
 
         Or(Expr * a_, Expr * b_) : a(a_), b(b_) { }
 
-        bool match(int v) const { return a->match(v) || b->match(v); }
+        bool match(ipv4_addr v) const { return a->match(v) || b->match(v); }
 };
 
 struct Not : Expr
@@ -36,13 +39,13 @@ struct Not : Expr
 
         Not(Expr * a_) : a(a_) { }
 
-        bool match(int v) const { return !a->match(v); }
+        bool match(ipv4_addr v) const { return !a->match(v); }
 };
 
 struct LengthMatch : Expr
 {
         // NOTE: this only works insofar as the types are 4 bytes wide
-        bool match(int v) const
+        bool match(ipv4_addr v) const
         {
                 for (int i = 0; i < match_length; ++i)
                 {
@@ -50,29 +53,31 @@ struct LengthMatch : Expr
                         // 1 16
                         // 2 8
                         // 3 0
-                        if ((v & (0xff << (24 - 8 * i)))
-                            != (val & (0xff << (24 - 8 * i))))
+                        if ((v.bits
+                             & static_cast<uint32_t>(0xff << (24 - 8 * i)))
+                            != (val.bits
+                                & static_cast<uint32_t>(0xff << (24 - 8 * i))))
                                 return false;
                 }
 
                 return true;
         }
 
-        LengthMatch(int v, int match_length_)
+        LengthMatch(ipv4_addr v, int match_length_)
             : val(v), match_length(match_length_)
         {
         }
 
-        int val;
+        ipv4_addr val;
         int match_length;
 };
 
 struct ExactMatch : Expr
 {
-        bool match(int v) const { return v == val; }
+        bool match(ipv4_addr v) const { return v == val; }
 
-        ExactMatch(int v) : val(v) { }
+        ExactMatch(ipv4_addr v) : val(v) { }
 
-        int val;
+        ipv4_addr val;
 };
 }

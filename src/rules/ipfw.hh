@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <cstdlib>
 #include <functional>
 #include <map>
@@ -34,8 +35,8 @@ struct Rules
         // NOTE: does not prevent overriding of existing rules
         int add(int rule_number,
                 action action,
-                int32_t ipv4_to,
-                int32_t ipv4_from,
+                ipv4_addr ipv4_to,
+                ipv4_addr ipv4_from,
                 std::optional<PacketHandler> handler = {});
         int add(int rule_number,
                 action action,
@@ -60,8 +61,7 @@ private:
 
                 bool matches(const ipv4_packet_header & p) const
                 {
-                        return to_expr->match(p.src.bits)
-                                && from_expr->match(p.dst.bits);
+                        return to_expr->match(p.dst) && from_expr->match(p.src);
                 }
         };
 

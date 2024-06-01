@@ -9,6 +9,16 @@ namespace nimrod
 struct ipv4_addr
 {
         std::uint32_t bits;
+
+        friend bool operator==(const ipv4_addr & lhs, const ipv4_addr & rhs)
+        {
+                return lhs.bits == rhs.bits;
+        }
+
+        friend bool operator!=(const ipv4_addr & lhs, const ipv4_addr & rhs)
+        {
+                return !(lhs == rhs);
+        }
 };
 
 enum class ipv4_version : uint8_t

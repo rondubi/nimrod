@@ -3,6 +3,7 @@
 #include "proto/ipv4.hh"
 
 #include <cassert>
+#include <cstdio>
 #include <cstdlib>
 
 // Some site with the IPFW BNF: http://info.iet.unipi.it/~luigi/ip_dummynet/original.html
@@ -31,15 +32,15 @@ int Rules::add(
 int Rules::add(
         int32_t rule_number,
         action action,
-        int32_t ipv4_to,
-        int32_t ipv4_from,
+        ipv4_addr to,
+        ipv4_addr from,
         std::optional<PacketHandler> handler)
 {
         return add(
                 rule_number,
                 action,
-                new ExactMatch(ipv4_to),
-                new ExactMatch(ipv4_from),
+                new ExactMatch(to),
+                new ExactMatch(from),
                 handler);
 }
 
