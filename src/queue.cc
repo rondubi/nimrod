@@ -14,6 +14,8 @@ send_result queue::send(packet && p)
         const auto head = head_.load();
         auto tail = tail_.load();
 
+        assert(head >= tail);
+
         while (true)
         {
                 if ((head - tail) >= size_)
@@ -50,7 +52,6 @@ recv_result queue::recv(packet * out)
                                 return recv_result::closed;
                         continue;
                 }
-
 
                 assert(!empty());
                 *out = std::move(front());

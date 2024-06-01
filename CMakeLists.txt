@@ -23,6 +23,7 @@ target_link_libraries(nimrod PRIVATE nimrod_core)
 
 add_executable(tests
     "tests/doctest_main.cc"
+    "tests/queue.cc"
 )
 target_compile_features(tests PRIVATE cxx_std_17)
 target_link_libraries(tests PRIVATE nimrod_core)

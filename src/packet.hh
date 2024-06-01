@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <optional>
 #include <variant>
@@ -34,10 +35,7 @@ public:
                                 return packet.total_size();
                         }
 
-                        std::size_t operator()(const std::nullopt_t &)
-                        {
-                                return 0;
-                        }
+                        std::size_t operator()(const int &) { return 0; }
                 };
 
                 return std::visit(visitor{}, packet_);
@@ -53,9 +51,21 @@ public:
 
         void set_passed_long_callback(std::function<void(const packet &)> cb);
 
+        friend bool operator==(const packet & lhs, const packet & rhs)
+        {
+                return lhs.kind_ == rhs.kind_ && lhs.packet_ == rhs.packet_;
+        }
+
+        friend bool operator!=(const packet & lhs, const packet & rhs)
+        {
+                return !(lhs == rhs);
+        }
+
+        uint64_t id = 0;
+
 private:
         packet_kind kind_ = packet_kind::none;
-        std::variant<std::nullopt_t, ipv4_packet> packet_{std::nullopt};
+        std::variant<int, ipv4_packet> packet_{0};
         std::function<void(const packet &)> passed_along_callback_;
 };
 }
