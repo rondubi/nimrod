@@ -75,10 +75,9 @@ private:
 
 struct RulesSender : public sender
 {
-        RulesSender(std::shared_ptr<sender> s_)
-            : s(s_)
-            , rule_table(
-                      [&](packet && p) {
+        RulesSender(std::shared_ptr<sender> s)
+            : rule_table(
+                      [=](packet && p) {
                               return s->send(std::move(p)) == send_result::ok
                                       ? 0
                                       : FAIL;
@@ -88,18 +87,9 @@ struct RulesSender : public sender
 
         send_result send(packet && p) override
         {
-                switch (rule_table.apply_rules(std::move(p)))
-                {
-                        case DENIED:
-                                return send_result::closed;
-                        case FAIL:
-                                return send_result::closed;
-                        default:
-                                return send_result::ok;
-                }
+                rule_table.apply_rules(std::move(p));
+                return send_result::ok;
         }
-
-        std::shared_ptr<sender> s;
 
         Rules rule_table;
 };
