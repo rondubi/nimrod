@@ -1,7 +1,8 @@
 *.swo
 *.swp
 
-# Ignnore executable
+# Ignnore executables
 test
 build/
 .cache/
+ipfw_test
