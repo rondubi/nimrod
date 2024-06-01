@@ -3,17 +3,6 @@
 
 namespace nimrod
 {
-// send_result queue::try_send(packet && p)
-// {
-//         if (closed_)
-//                 return send_result::closed;
-//         if (full())
-//                 return send_result::full;
-
-//         push(std::move(p));
-//         return send_result::ok;
-// }
-
 send_result queue::send(packet && p)
 {
         if (closed_)

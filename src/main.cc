@@ -4,6 +4,7 @@
 #include "core.hh"
 #include "packet.hh"
 #include "proto/ipv4.hh"
+#include "queue.hh"
 #include "receiver/limit.hh"
 #include "receiver/repeat.hh"
 #include "sender/link.hh"
@@ -24,6 +25,7 @@ int main()
 
         auto limited_repeat = std::make_shared<nimrod::limit>(16, repeat);
 
+        nimrod::queue queue{5};
 
         std::shared_ptr<nimrod::sender> send;
 

@@ -3,8 +3,7 @@ project(nimrod VERSION 0.1.0)
 
 add_executable(nimrod
     "src/main.cc"
-    "src/pipe.cc"
-    "src/pipe2.cc"
+    "src/receiver/round_robin.cc"
     "src/sender/fork.cc"
     "src/sender/log.cc"
     "src/sender/link.cc"
