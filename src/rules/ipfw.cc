@@ -1,5 +1,6 @@
 #include "ipfw.hh"
 #include "pattern.hh"
+#include "proto/ipv4.hh"
 
 #include <cassert>
 #include <cstdlib>
@@ -42,7 +43,7 @@ int Rules::add(
                 handler);
 }
 
-int Rules::apply_rules(packet packet) const
+int Rules::apply_rules(const ipv4_packet_header & packet) const
 {
         for (const auto & [rnum, rule] : rule_table)
         {

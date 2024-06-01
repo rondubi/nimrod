@@ -11,9 +11,13 @@ struct ipv4_addr
         std::uint32_t bits;
 };
 
+enum class ipv4_version : uint8_t
+{
+};
+
 struct ipv4_packet_header
 {
-        uint8_t version;
+        ipv4_version version;
         uint8_t service;
         uint16_t total_length;
         uint16_t id;

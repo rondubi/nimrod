@@ -3,7 +3,9 @@
 #include <map>
 #include <optional>
 
+#include "packet.hh"
 #include "pattern.hh"
+#include "proto/ipv4.hh"
 
 namespace nimrod
 {
@@ -14,17 +16,12 @@ enum class action
         // TODO: more actions
 };
 
-struct packet
-{
-        int32_t ipv4_to;
-        int32_t ipv4_from;
-};
 
 // TODO: status indicator enum
 constexpr int FAIL = -5;
 constexpr int DENIED = -3;
 
-using PacketHandler = std::function<int(packet)>;
+using PacketHandler = std::function<int(const ipv4_packet_header &)>;
 
 struct Rules
 {
@@ -47,7 +44,7 @@ struct Rules
                 std::optional<PacketHandler> handler = {});
 
         // NOTE: should return status
-        int apply_rules(packet packet) const;
+        int apply_rules(const ipv4_packet_header & packet) const;
 
 private:
         // NOTE: assume for now that all protocols are IPv4
@@ -61,10 +58,10 @@ private:
                 std::unique_ptr<Expr> from_expr;
                 std::optional<PacketHandler> handler;
 
-                bool matches(packet p) const
+                bool matches(const ipv4_packet_header & p) const
                 {
-                        return to_expr->match(p.ipv4_to)
-                                && from_expr->match(p.ipv4_from);
+                        return to_expr->match(p.src.bits)
+                                && from_expr->match(p.dst.bits);
                 }
         };
 

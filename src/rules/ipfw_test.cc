@@ -1,24 +1,35 @@
 #include "ipfw.hh"
+#include "proto/ipv4.hh"
 
 #include <cassert>
+#include <cstdint>
 
 using namespace nimrod;
 
 namespace
 {
+ipv4_packet_header make_packet(uint32_t dst, uint32_t src)
+{
+        return {
+                .src = ipv4_addr{.bits = src},
+                .dst = ipv4_addr{.bits = dst},
+        };
+}
+
+
 bool test_basic_allow_rule()
 {
         int status = 0;
 
         Rules r(
-                [&](packet p)
+                [&](const ipv4_packet_header & p)
                 {
                         status = 13;
                         return 0;
                 });
 
         r.add(1, action::allow, 1, 1);
-        int res = r.apply_rules({1, 1});
+        int res = r.apply_rules(make_packet(1, 1));
 
         return res == 0 && status == 13;
 }
@@ -28,14 +39,14 @@ bool test_basic_deny_rule()
         int status = 0;
 
         Rules r(
-                [&](packet p)
+                [&](const ipv4_packet_header & p)
                 {
                         status = 13;
                         return 0;
                 });
 
         r.add(1, action::deny, 1, 1);
-        int res = r.apply_rules({1, 1});
+        int res = r.apply_rules(make_packet(1, 1));
 
         return res == DENIED && status == 0;
 }
@@ -45,7 +56,7 @@ bool test_pri_in_order()
         int status = 0;
 
         Rules r(
-                [&](packet p)
+                [&](const ipv4_packet_header & p)
                 {
                         status = 13;
                         return 0;
@@ -53,7 +64,7 @@ bool test_pri_in_order()
 
         r.add(1, action::allow, 1, 1);
         r.add(2, action::deny, 1, 1);
-        int res = r.apply_rules({1, 1});
+        int res = r.apply_rules(make_packet(1, 1));
 
         return res == 0 && status == 13;
 }
@@ -63,7 +74,7 @@ bool test_pri_out_of_order()
         int status = 0;
 
         Rules r(
-                [&](packet p)
+                [&](const ipv4_packet_header & p)
                 {
                         status = 13;
                         return 0;
@@ -71,7 +82,7 @@ bool test_pri_out_of_order()
 
         r.add(2, action::deny, 1, 1);
         r.add(1, action::allow, 1, 1);
-        int res = r.apply_rules({1, 1});
+        int res = r.apply_rules(make_packet(1, 1));
 
         return res == 0 && status == 13;
 }
@@ -81,7 +92,7 @@ bool test_pattern_match_or()
         int status = 0;
 
         Rules r(
-                [&](packet p)
+                [&](const ipv4_packet_header & p)
                 {
                         status = 13;
                         return 0;
@@ -91,12 +102,12 @@ bool test_pattern_match_or()
               action::allow,
               new Or(new ExactMatch(1), new ExactMatch(2)),
               new ExactMatch(1));
-        const int res1 = r.apply_rules({1, 1});
+        const int res1 = r.apply_rules(make_packet(1, 1));
         const int status1 = status;
-        const int res2 = r.apply_rules({2, 1});
+        const int res2 = r.apply_rules(make_packet(2, 1));
         const int status2 = status;
         status = 0;
-        const int res3 = r.apply_rules({3, 1});
+        const int res3 = r.apply_rules(make_packet(3, 1));
 
         return res1 == 0 && status1 == 13 && res2 == 0 && status2 == 13
                 && res3 == FAIL && status == 0;
@@ -107,16 +118,16 @@ bool test_pattern_match_not()
         int status = 0;
 
         Rules r(
-                [&](packet p)
+                [&](const ipv4_packet_header & p)
                 {
                         status = 13;
                         return 0;
                 });
 
         r.add(1, action::deny, new Not(new ExactMatch(1)), new ExactMatch(1));
-        const int res1 = r.apply_rules({1, 1});
+        const int res1 = r.apply_rules(make_packet(1, 1));
         const int status1 = status;
-        const int res2 = r.apply_rules({2, 1});
+        const int res2 = r.apply_rules(make_packet(2, 1));
 
         return res1 == FAIL && status1 == 0 && res2 == DENIED && status == 0;
 }
@@ -126,7 +137,7 @@ bool test_pattern_match_and()
         int status = 0;
 
         Rules r(
-                [&](packet p)
+                [&](const ipv4_packet_header & p)
                 {
                         status = 13;
                         return 0;
@@ -136,11 +147,11 @@ bool test_pattern_match_and()
               action::allow,
               new And(new Not(new ExactMatch(1)), new Not(new ExactMatch(2))),
               new ExactMatch(1));
-        const int res1 = r.apply_rules({1, 1});
+        const int res1 = r.apply_rules(make_packet(1, 1));
         const int status1 = status;
-        const int res2 = r.apply_rules({2, 1});
+        const int res2 = r.apply_rules(make_packet(2, 1));
         const int status2 = status;
-        const int res3 = r.apply_rules({3, 1});
+        const int res3 = r.apply_rules(make_packet(3, 1));
 
         return res1 == FAIL && status1 == 0 && res2 == FAIL && status2 == 0
                 && res3 == 0 && status == 13;
@@ -151,20 +162,20 @@ bool test_pattern_match_any()
         int status = 0;
 
         Rules r(
-                [&](packet p)
+                [&](const ipv4_packet_header & p)
                 {
                         status = 13;
                         return 0;
                 });
 
         r.add(1, action::allow, new LengthMatch(0, 0), new ExactMatch(1));
-        const int res1 = r.apply_rules({1, 1});
+        const int res1 = r.apply_rules(make_packet(1, 1));
         const int status1 = status;
         status = 0;
-        const int res2 = r.apply_rules({2, 1});
+        const int res2 = r.apply_rules(make_packet(2, 1));
         const int status2 = status;
         status = 0;
-        const int res3 = r.apply_rules({3, 1});
+        const int res3 = r.apply_rules(make_packet(3, 1));
 
         return res1 == 0 && status1 == 13 && res2 == 0 && status2 == 13
                 && res3 == 0 && status == 13;
@@ -175,7 +186,7 @@ bool test_pattern_match_length_match()
         int status = 0;
 
         Rules r(
-                [&](packet p)
+                [&](const ipv4_packet_header & p)
                 {
                         status = 13;
                         return 0;
@@ -185,16 +196,16 @@ bool test_pattern_match_length_match()
               action::allow,
               new LengthMatch(0xffffffff, 3),
               new ExactMatch(1));
-        const int res1 = r.apply_rules({0, 1});
+        const int res1 = r.apply_rules(make_packet(0, 1));
         const int status1 = status;
-        const int res2 = r.apply_rules({(int)0xff000000, 1});
+        const int res2 = r.apply_rules(make_packet(0xff000000, 1));
         const int status2 = status;
-        const int res3 = r.apply_rules({(int)0xffff0000, 1});
+        const int res3 = r.apply_rules(make_packet(0xffff0000, 1));
         const int status3 = status;
-        const int res4 = r.apply_rules({(int)0xffffff00, 1});
+        const int res4 = r.apply_rules(make_packet(0xffffff00, 1));
         const int status4 = status;
         status = 0;
-        const int res5 = r.apply_rules({(int)0xffffffff, 1});
+        const int res5 = r.apply_rules(make_packet(0xffffffff, 1));
 
         return res1 == FAIL && status1 == 0 && res2 == FAIL && status2 == 0
                 && res3 == FAIL && status3 == 0 && res4 == 0 && status4 == 13
@@ -206,7 +217,7 @@ bool test_custom_handler()
         int status = 0;
 
         Rules r(
-                [&](packet p)
+                [&](const ipv4_packet_header & p)
                 {
                         status = 13;
                         return 0;
@@ -216,12 +227,12 @@ bool test_custom_handler()
               action::allow,
               1,
               1,
-              {[&](packet p)
+              {[&](const ipv4_packet_header & p)
                {
                        status = 14;
                        return 0;
                }});
-        int res = r.apply_rules({1, 1});
+        int res = r.apply_rules(make_packet(1, 1));
 
         return res == 0 && status == 14;
 }

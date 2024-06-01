@@ -44,6 +44,8 @@ public:
 
         packet_kind kind() const { return kind_; }
 
+        ipv4_packet_header & ipv4_header();
+
 private:
         packet_kind kind_ = packet_kind::none;
         std::variant<std::nullopt_t, ipv4_packet> packet_{std::nullopt};
