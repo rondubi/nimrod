@@ -44,17 +44,18 @@ int Rules::add(
                 handler);
 }
 
-int Rules::apply_rules(const ipv4_packet_header & packet) const
+int Rules::apply_rules(packet && packet) const
 {
         for (const auto & [rnum, rule] : rule_table)
         {
-                if (rule.matches(packet))
+                if (rule.matches(packet.ipv4_header()))
                 {
                         switch (rule.act)
                         {
                                 case action::allow:
                                         return rule.handler.value_or(
-                                                default_handle_fn)(packet);
+                                                default_handle_fn)(
+                                                std::move(packet));
                                 case action::deny:
                                         return DENIED;
                                 default:
@@ -65,4 +66,5 @@ int Rules::apply_rules(const ipv4_packet_header & packet) const
 
         return FAIL;
 }
+
 }

@@ -9,12 +9,12 @@
 
 using namespace nimrod;
 
-ipv4_packet_header make_packet(uint32_t dst, uint32_t src)
+ipv4_packet make_packet(uint32_t dst, uint32_t src)
 {
-        return {
+        return { .header = {
                 .src = {src},
                 .dst = {dst},
-        };
+        }, };
 }
 
 
@@ -23,7 +23,7 @@ TEST_CASE("test_basic_allow_rule")
         int status = 0;
 
         Rules r(
-                [&](const ipv4_packet_header & p)
+                [&](packet && p)
                 {
                         status = 13;
                         return 0;
@@ -41,7 +41,7 @@ TEST_CASE("test_basic_deny_rule")
         int status = 0;
 
         Rules r(
-                [&](const ipv4_packet_header & p)
+                [&](packet && p)
                 {
                         status = 13;
                         return 0;
@@ -59,7 +59,7 @@ TEST_CASE("test_pri_in_order")
         int status = 0;
 
         Rules r(
-                [&](const ipv4_packet_header & p)
+                [&](packet && p)
                 {
                         status = 13;
                         return 0;
@@ -78,7 +78,7 @@ TEST_CASE("test_pri_out_of_order")
         int status = 0;
 
         Rules r(
-                [&](const ipv4_packet_header & p)
+                [&](packet && p)
                 {
                         status = 13;
                         return 0;
@@ -97,7 +97,7 @@ TEST_CASE("test_pattern_match_or")
         int status = 0;
 
         Rules r(
-                [&](const ipv4_packet_header & p)
+                [&](packet && p)
                 {
                         status = 13;
                         return 0;
@@ -128,7 +128,7 @@ TEST_CASE("test_pattern_match_not")
         int status = 0;
 
         Rules r(
-                [&](const ipv4_packet_header & p)
+                [&](packet && p)
                 {
                         status = 13;
                         return 0;
@@ -153,7 +153,7 @@ TEST_CASE("test_pattern_match_and")
         int status = 0;
 
         Rules r(
-                [&](const ipv4_packet_header & p)
+                [&](packet && p)
                 {
                         status = 13;
                         return 0;
@@ -183,7 +183,7 @@ TEST_CASE("test_pattern_match_any")
         int status = 0;
 
         Rules r(
-                [&](const ipv4_packet_header & p)
+                [&](packet && p)
                 {
                         status = 13;
                         return 0;
@@ -214,7 +214,7 @@ TEST_CASE("test_pattern_match_length_match")
         int status = 0;
 
         Rules r(
-                [&](const ipv4_packet_header & p)
+                [&](packet && p)
                 {
                         status = 13;
                         return 0;
@@ -252,7 +252,7 @@ TEST_CASE("custom handler")
         int status = 0;
 
         Rules r(
-                [&](const ipv4_packet_header & p)
+                [&](packet && p)
                 {
                         status = 13;
                         return 0;
@@ -262,7 +262,7 @@ TEST_CASE("custom handler")
               action::allow,
               {1},
               {1},
-              {[&](const ipv4_packet_header & p)
+              {[&](packet && p)
                {
                        status = 14;
                        return 0;
