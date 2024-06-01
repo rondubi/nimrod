@@ -1,14 +1,14 @@
-#include "ipfw.hh"
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest.h>
+
 #include "proto/ipv4.hh"
+#include "rules/ipfw.hh"
 
 #include <cassert>
 #include <cstdint>
-#include <cstdio>
 
 using namespace nimrod;
 
-namespace
-{
 ipv4_packet_header make_packet(uint32_t dst, uint32_t src)
 {
         return {
@@ -18,7 +18,7 @@ ipv4_packet_header make_packet(uint32_t dst, uint32_t src)
 }
 
 
-bool test_basic_allow_rule()
+TEST_CASE("test_basic_allow_rule")
 {
         int status = 0;
 
@@ -32,10 +32,11 @@ bool test_basic_allow_rule()
         r.add(1, action::allow, ipv4_addr{1}, ipv4_addr{1});
         int res = r.apply_rules(make_packet(1, 1));
 
-        return res == 0 && status == 13;
+        CHECK(res == 0);
+        CHECK(status == 13);
 }
 
-bool test_basic_deny_rule()
+TEST_CASE("test_basic_deny_rule")
 {
         int status = 0;
 
@@ -49,10 +50,11 @@ bool test_basic_deny_rule()
         r.add(1, action::deny, ipv4_addr{1}, ipv4_addr{1});
         int res = r.apply_rules(make_packet(1, 1));
 
-        return res == DENIED && status == 0;
+        CHECK(res == DENIED);
+        CHECK(status == 0);
 }
 
-bool test_pri_in_order()
+TEST_CASE("test_pri_in_order")
 {
         int status = 0;
 
@@ -67,10 +69,11 @@ bool test_pri_in_order()
         r.add(2, action::deny, ipv4_addr{1}, ipv4_addr{1});
         int res = r.apply_rules(make_packet(1, 1));
 
-        return res == 0 && status == 13;
+        CHECK(res == 0);
+        CHECK(status == 13);
 }
 
-bool test_pri_out_of_order()
+TEST_CASE("test_pri_out_of_order")
 {
         int status = 0;
 
@@ -85,10 +88,11 @@ bool test_pri_out_of_order()
         r.add(1, action::allow, ipv4_addr{1}, ipv4_addr{1});
         int res = r.apply_rules(make_packet(1, 1));
 
-        return res == 0 && status == 13;
+        CHECK(res == 0);
+        CHECK(status == 13);
 }
 
-bool test_pattern_match_or()
+TEST_CASE("test_pattern_match_or")
 {
         int status = 0;
 
@@ -111,11 +115,15 @@ bool test_pattern_match_or()
         status = 0;
         const int res3 = r.apply_rules(make_packet(3, 1));
 
-        return res1 == 0 && status1 == 13 && res2 == 0 && status2 == 13
-                && res3 == FAIL && status == 0;
+        CHECK(res1 == 0);
+        CHECK(status1 == 13);
+        CHECK(res2 == 0);
+        CHECK(status2 == 13);
+        CHECK(res3 == FAIL);
+        CHECK(status == 0);
 }
 
-bool test_pattern_match_not()
+TEST_CASE("test_pattern_match_not")
 {
         int status = 0;
 
@@ -134,10 +142,13 @@ bool test_pattern_match_not()
         const int status1 = status;
         const int res2 = r.apply_rules(make_packet(2, 1));
 
-        return res1 == FAIL && status1 == 0 && res2 == DENIED && status == 0;
+        CHECK(res1 == FAIL);
+        CHECK(status1 == 0);
+        CHECK(res2 == DENIED);
+        CHECK(status == 0);
 }
 
-bool test_pattern_match_and()
+TEST_CASE("test_pattern_match_and")
 {
         int status = 0;
 
@@ -159,11 +170,15 @@ bool test_pattern_match_and()
         const int status2 = status;
         const int res3 = r.apply_rules(make_packet(3, 1));
 
-        return res1 == FAIL && status1 == 0 && res2 == FAIL && status2 == 0
-                && res3 == 0 && status == 13;
+        CHECK(res1 == FAIL);
+        CHECK(status1 == 0);
+        CHECK(res2 == FAIL);
+        CHECK(status2 == 0);
+        CHECK(res3 == 0);
+        CHECK(status == 13);
 }
 
-bool test_pattern_match_any()
+TEST_CASE("test_pattern_match_any")
 {
         int status = 0;
 
@@ -186,11 +201,15 @@ bool test_pattern_match_any()
         status = 0;
         const int res3 = r.apply_rules(make_packet(3, 1));
 
-        return res1 == 0 && status1 == 13 && res2 == 0 && status2 == 13
-                && res3 == 0 && status == 13;
+        CHECK(res1 == 0);
+        CHECK(status1 == 13);
+        CHECK(res2 == 0);
+        CHECK(status2 == 13);
+        CHECK(res3 == 0);
+        CHECK(status == 13);
 }
 
-bool test_pattern_match_length_match()
+TEST_CASE("test_pattern_match_length_match")
 {
         int status = 0;
 
@@ -216,12 +235,19 @@ bool test_pattern_match_length_match()
         status = 0;
         const int res5 = r.apply_rules(make_packet(0xffffffff, 1));
 
-        return res1 == FAIL && status1 == 0 && res2 == FAIL && status2 == 0
-                && res3 == FAIL && status3 == 0 && res4 == 0 && status4 == 13
-                && res5 == 0 && status == 13;
+        CHECK(res1 == FAIL);
+        CHECK(status1 == 0);
+        CHECK(res2 == FAIL);
+        CHECK(status2 == 0);
+        CHECK(res3 == FAIL);
+        CHECK(status3 == 0);
+        CHECK(res4 == 0);
+        CHECK(status4 == 13);
+        CHECK(res5 == 0);
+        CHECK(status == 13);
 }
 
-bool test_custom_handler()
+TEST_CASE("custom handler")
 {
         int status = 0;
 
@@ -243,41 +269,6 @@ bool test_custom_handler()
                }});
         int res = r.apply_rules(make_packet(1, 1));
 
-        return res == 0 && status == 14;
-}
-}
-
-int main()
-{
-        assert(test_basic_allow_rule());
-        printf("Finished basic allow test!\n");
-
-        assert(test_basic_deny_rule());
-        printf("Finished basic deny test!\n");
-
-        assert(test_pri_in_order());
-        printf("Finished priority in order test!\n");
-
-        assert(test_pri_out_of_order());
-        printf("Finished priority out of order test!\n");
-
-        assert(test_pattern_match_or());
-        printf("Finished pattern match OR test!\n");
-
-        assert(test_pattern_match_not());
-        printf("Finished pattern match NOT test!\n");
-
-        assert(test_pattern_match_and());
-        printf("Finished pattern match AND test!\n");
-
-        assert(test_pattern_match_any());
-        printf("Finished pattern match * test!\n");
-
-        assert(test_pattern_match_length_match());
-        printf("Finished pattern match length match test!\n");
-
-        assert(test_custom_handler());
-        printf("Finished custom handler test!\n");
-
-        return 0;
+        CHECK(res == 0);
+        CHECK(status == 14);
 }
