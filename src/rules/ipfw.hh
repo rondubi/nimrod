@@ -1,12 +1,16 @@
+#pragma once
+
 #include <cstdio>
 #include <cstdlib>
 #include <functional>
 #include <map>
 #include <optional>
 
+#include "core.hh"
 #include "packet.hh"
 #include "pattern.hh"
 #include "proto/ipv4.hh"
+#include "sender.hh"
 
 namespace nimrod
 {
@@ -22,7 +26,7 @@ enum class action
 constexpr int FAIL = -5;
 constexpr int DENIED = -3;
 
-using PacketHandler = std::function<int(const ipv4_packet_header &)>;
+using PacketHandler = std::function<int(packet &&)>;
 
 struct Rules
 {
@@ -45,7 +49,7 @@ struct Rules
                 std::optional<PacketHandler> handler = {});
 
         // NOTE: should return status
-        int apply_rules(const ipv4_packet_header & packet) const;
+        int apply_rules(packet && packet) const;
 
 private:
         // NOTE: assume for now that all protocols are IPv4
@@ -67,6 +71,27 @@ private:
 
         std::map<int, Rule> rule_table;
         PacketHandler default_handle_fn;
+};
+
+struct RulesSender : public sender
+{
+        RulesSender(std::shared_ptr<sender> s)
+            : rule_table(
+                      [=](packet && p) {
+                              return s->send(std::move(p)) == send_result::ok
+                                      ? 0
+                                      : FAIL;
+                      })
+        {
+        }
+
+        send_result send(packet && p) override
+        {
+                rule_table.apply_rules(std::move(p));
+                return send_result::ok;
+        }
+
+        Rules rule_table;
 };
 
 }
