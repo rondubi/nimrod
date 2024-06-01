@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "core.hh"
 #include "packet.hh"
 
