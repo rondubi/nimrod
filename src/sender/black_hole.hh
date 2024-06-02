@@ -6,6 +6,8 @@ namespace nimrod
 {
 struct black_hole : sender
 {
-        send_result send(packet && p) override;
+        black_hole() = default;
+
+        send_result send(packet && p) final;
 };
 }
