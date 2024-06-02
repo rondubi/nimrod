@@ -5,6 +5,7 @@ add_library(nimrod_core
     "src/packet.cc"
     "src/queue.cc"
     "src/receiver/round_robin.cc"
+    "src/sender/black_hole.cc"
     "src/sender/fork.cc"
     "src/sender/log.cc"
     "src/sender/link.cc"
