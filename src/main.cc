@@ -139,8 +139,9 @@ void run_test_case(
         std::vector<std::shared_ptr<nimrod::sender>> topology,
         F gen)
 {
-        const std::uint64_t total_samples = 10'000'000;
+        const std::uint64_t total_samples = 100'000'000;
         std::vector<std::chrono::nanoseconds> samples;
+        std::vector<double> squared_samples;
 
         nimrod::packet packet;
 
@@ -155,6 +156,7 @@ void run_test_case(
                         topology[i]->send(gen());
                 const auto end = std::chrono::steady_clock::now();
                 samples.push_back(end - start);
+                squared_samples.push_back(std::pow( samples.back() / 1ns, 2));
         }
         const auto sampling_end = std::chrono::steady_clock::now();
 
@@ -166,9 +168,21 @@ void run_test_case(
 
         average /= samples.size();
 
+        double sum_of_squares = 0.0;
+        for (const auto squared_sample : squared_samples)
+                sum_of_squares += squared_sample;
+
+        const double average_double
+                = std::chrono::duration<double>(average).count();
+        const double standard_deviation = std::pow(
+                sum_of_squares / squared_samples.size()
+                        - average_double * average_double,
+                0.5);
+
         std::cout << "test '" << name << "': collected " << total_samples
                   << " samples in " << sampling_end - sampling_start
-                  << " with an average time of " << average << "\n";
+                  << ", \taverage time: " << average
+                  << ", \tstandard deviation: " << standard_deviation << "ns\n";
 }
 // void fuse(nimrod::receiver & r, nimrod::sender & s)
 // {
