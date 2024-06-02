@@ -139,7 +139,7 @@ void run_test_case(
         std::vector<std::shared_ptr<nimrod::sender>> topology,
         F gen)
 {
-        const std::uint64_t total_samples = 100'000'000;
+        const std::uint64_t total_samples = 10'000'000;
         std::vector<std::chrono::nanoseconds> samples;
         std::vector<double> squared_samples;
 
