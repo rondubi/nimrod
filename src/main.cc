@@ -34,8 +34,8 @@ int main()
                 static int i = 0;
                 return nimrod::ipv4_packet{
                     .header = {
-                        .src = {std::vector{0u, 1u, 100u}[i++ % 3]},
-                        .dst = {0},
+                        .dst = {std::vector{0u, 1u, 100u}[i++ % 3]},
+                        .src = {0},
                         .total_length = 32,
                     },
                     .payload = std::vector<std::byte>(8, std::byte{}) // models UDP header
@@ -72,7 +72,7 @@ int main()
         {
                 auto pkt = get_next_packet();
                 // TODO: figure out a better way to drop packets with src 0
-                if (pkt.header.src == nimrod::ipv4_addr{0})
+                if (pkt.header.dst == nimrod::ipv4_addr{0})
                         continue;
                 auto elapsed_time
                         = std::chrono::duration_cast<std::chrono::milliseconds>(
