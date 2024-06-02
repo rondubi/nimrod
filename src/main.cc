@@ -77,10 +77,11 @@ int main()
 
         auto stage_d = std::make_shared<nimrod::blackhole>();
         auto stage_c_r = std::make_shared<nimrod::link>(stage_d, 0ns, 1024);
-        auto stage_c_d = std::make_shared<nimrod::link>(stage_c_r, 20ms, std::numeric_limits<size_t>::max());
-        auto stage_c_0 = std::make_shared<nimrod::link>(stage_c_d, 0ns, std::numeric_limits<size_t>::max());
-        auto stage_b_100
-                = std::make_shared<nimrod::RulesSender>(stage_c_0);
+        auto stage_c_d = std::make_shared<nimrod::link>(
+                stage_c_r, 20ms, std::numeric_limits<size_t>::max());
+        auto stage_c_0 = std::make_shared<nimrod::link>(
+                stage_c_d, 0ns, std::numeric_limits<size_t>::max());
+        auto stage_b_100 = std::make_shared<nimrod::RulesSender>(stage_c_0);
         for (int i = 2; i <= 100; ++i)
         {
                 stage_b_100->rule_table.add(
@@ -106,10 +107,12 @@ int main()
                 auto pkt = get_next_packet();
                 if (pkt.header.src == nimrod::ipv4_addr{0})
                         continue;
-                auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time);
-                if (elapsed_time >= std::chrono::milliseconds(1500)) {
+                auto elapsed_time
+                        = std::chrono::duration_cast<std::chrono::milliseconds>(
+                                std::chrono::high_resolution_clock::now()
+                                - start_time);
+                if (elapsed_time >= std::chrono::milliseconds(1500))
                         break;
-                }
 
                 stage_b->send(pkt);
         }
