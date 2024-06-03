@@ -1,9 +1,12 @@
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <random>
 #include <string_view>
+#include <thread>
 #include <vector>
 
 #include "core.hh"
@@ -28,28 +31,34 @@ template <typename F>
 void run_test_case(
         std::string_view name,
         std::vector<std::shared_ptr<nimrod::sender>> topology,
+        std::chrono::nanoseconds delay,
         F gen);
 
 int main()
 {
+        std::random_device random;
         // Assuming just one flow
-        auto get_next_packet = [&]()
+        auto get_next_packet = [&random]()
         {
-                static int i = 0;
                 return nimrod::ipv4_packet{
-                    .header = { 
+                    .header = {
+                        .id = static_cast<uint16_t>(random()),
                         .src = {1},
                         .dst = {3},
+                       
                     },
-                    .payload = std::vector<std::byte>(8, std::byte{}) // models UDP header
+                    .payload = {std::vector<std::byte>{8, std::byte{}}} // models UDP header
                 };
         };
 
         auto top = nimrod::case_a(1);
 
-        run_test_case("case a", nimrod::case_a(1), get_next_packet);
-        run_test_case("case b", nimrod::case_b(1, 1), get_next_packet);
-        run_test_case("case b_100", nimrod::case_b(1, 100), get_next_packet);
+        const std::size_t bw_limit = 1024 * 1024 * 1024;
+
+        run_test_case("case a", nimrod::case_a(1), {}, get_next_packet);
+        run_test_case("case b", nimrod::case_b(1, 1), {}, get_next_packet);
+        run_test_case(
+                "case b_100", nimrod::case_b(1, 100), {}, get_next_packet);
 
         run_test_case(
                 "case c0",
@@ -57,6 +66,7 @@ int main()
                         1,
                         std::chrono::milliseconds{0},
                         std::numeric_limits<std::size_t>::max()),
+                {},
                 get_next_packet);
 
         run_test_case(
@@ -65,12 +75,23 @@ int main()
                         1,
                         std::chrono::milliseconds{20},
                         std::numeric_limits<std::size_t>::max()),
+                std::chrono::milliseconds{20},
                 get_next_packet);
 
 
         run_test_case(
                 "case cr",
-                nimrod::case_c(1, std::chrono::milliseconds{0}, 1024),
+                nimrod::case_c(1, std::chrono::milliseconds{0}, bw_limit),
+                {},
+                get_next_packet);
+
+
+        run_test_case("case a'", nimrod::case_a(1000), {}, get_next_packet);
+        run_test_case("case b'", nimrod::case_b(1000, 1), {}, get_next_packet);
+        run_test_case(
+                "case c'",
+                nimrod::case_c(1000, std::chrono::milliseconds{0}, bw_limit),
+                {},
                 get_next_packet);
 
         // std::uint64_t sent = 0;
@@ -137,25 +158,37 @@ template <typename F>
 void run_test_case(
         std::string_view name,
         std::vector<std::shared_ptr<nimrod::sender>> topology,
+        std::chrono::nanoseconds delay,
         F gen)
 {
-        const std::uint64_t total_samples = 10'000'000;
+        const std::uint64_t total_samples = 100'000 / topology.size();
         std::vector<std::chrono::nanoseconds> samples;
 
         nimrod::packet packet;
 
-        const auto sampling_start = std::chrono::steady_clock::now();
-        for (uint64_t i = 0; i < total_samples; ++i)
-        {
-                std::vector<nimrod::packet> round_packets{
-                        topology.size(), packet};
+        const auto batch_size = 1'000;
 
+        const auto sampling_start = std::chrono::steady_clock::now();
+        std::chrono::seconds sample_time{1};
+
+        std::uint64_t total_sent = 0;
+
+        while (sampling_start + sample_time > std::chrono::steady_clock::now())
+        {
                 const auto start = std::chrono::steady_clock::now();
-                for (size_t i = 0; i < topology.size(); ++i)
-                        topology[i]->send(gen());
+                for (size_t i = 0; i < batch_size; ++i)
+                {
+                        for (auto & s : topology)
+                        {
+                                s->send(gen());
+                                total_sent++;
+                        }
+                }
+
                 const auto end = std::chrono::steady_clock::now();
-                samples.push_back(end - start);
+                samples.push_back((end - start) / batch_size);
         }
+        std::this_thread::sleep_for(delay);
         const auto sampling_end = std::chrono::steady_clock::now();
 
 
@@ -164,11 +197,14 @@ void run_test_case(
         for (auto sample : samples)
                 average += sample;
 
-        average /= samples.size();
+        average /= (samples.size());
 
-        std::cout << "test '" << name << "': collected " << total_samples
+        auto avg = (sampling_end - sampling_start) / total_sent;
+
+        std::cout << "test '" << name << "': collected " << samples.size()
                   << " samples in " << sampling_end - sampling_start
-                  << " with an average time of " << average << "\n";
+                  << " with an average time of " << average << " (" << avg
+                  << ")" << "\n ";
 }
 // void fuse(nimrod::receiver & r, nimrod::sender & s)
 // {

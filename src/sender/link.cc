@@ -2,6 +2,8 @@
 #include <chrono>
 #include <condition_variable>
 #include <cstdio>
+#include <iostream>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -37,8 +39,12 @@ struct link::shared
 
         std::chrono::nanoseconds send_time(const packet & p) const
         {
-                return std::chrono::nanoseconds{
-                        p.total_size() / bytes_per_second * std::nano::den};
+                double seconds = p.total_size()
+                        / static_cast<double>(bytes_per_second);
+                std::chrono::duration<double> s{seconds};
+                return std::chrono::duration_cast<std::chrono::nanoseconds>(s);
+                // return std::chrono::nanoseconds{
+                // p.total_size() / bytes_per_second * std::nano::den};
         }
 };
 
@@ -88,7 +94,8 @@ send_result link::send(packet && p)
                 std::move(p)});
         lock.unlock();
 
-        std::this_thread::sleep_until(start + send_time);
+        if (send_time != std::chrono::seconds{0})
+                std::this_thread::sleep_until(start + send_time);
 
         shared.cond.notify_one();
 
@@ -112,7 +119,7 @@ void link::worker(std::shared_ptr<shared> shared)
 
                 auto & p = shared->packets.front();
 
-                if (p.arrival <= clock::now())
+                if (p.arrival < clock::now())
                 {
                         shared->next->send(std::move(p.packet));
                         shared->packets.pop();
