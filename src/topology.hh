@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "core.hh"
+#include "sender/link.hh"
 
 namespace nimrod
 {
@@ -17,5 +18,5 @@ case_b(std::size_t flows, std::size_t rules);
 std::vector<std::shared_ptr<sender>>
 case_c(std::size_t flows,
        std::chrono::nanoseconds delay,
-       std::size_t bandwidth);
+       std::optional<bandwidth<double>> bandwidth = std::nullopt);
 }

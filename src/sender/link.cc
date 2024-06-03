@@ -13,6 +13,7 @@
 #include "core.hh"
 #include "link.hh"
 #include "packet.hh"
+#include "receiver/limit.hh"
 
 namespace nimrod
 {
@@ -28,7 +29,7 @@ struct link::shared
 {
         std::shared_ptr<sender> next;
         std::chrono::nanoseconds propagation_delay;
-        std::size_t bytes_per_second;
+        std::optional<bandwidth<double>> limit;
 
         clock::time_point prev_packet_done_sending = clock::now();
         std::queue<in_flight> packets;
@@ -39,8 +40,10 @@ struct link::shared
 
         std::chrono::nanoseconds send_time(const packet & p) const
         {
-                double seconds = p.total_size()
-                        / static_cast<double>(bytes_per_second);
+                if (!limit.has_value())
+                        return {};
+
+                double seconds = p.total_size() / limit->count;
                 std::chrono::duration<double> s{seconds};
                 return std::chrono::duration_cast<std::chrono::nanoseconds>(s);
                 // return std::chrono::nanoseconds{
@@ -59,8 +62,8 @@ link::~link()
 link::link(
         std::shared_ptr<sender> next,
         std::chrono::nanoseconds propagation_delay,
-        std::size_t bytes_per_second)
-    : shared_state_{new shared{next, propagation_delay, bytes_per_second}}
+        std::optional<bandwidth<double>> limit)
+    : shared_state_{new shared{next, propagation_delay, limit}}
 {
         shared_state_->worker = std::thread{[shared = shared_state_]
                                             { worker(std::move(shared)); }};

@@ -1,4 +1,5 @@
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "core.hh"
@@ -53,7 +54,9 @@ case_b(std::size_t flows, std::size_t rules)
 }
 
 std::vector<std::shared_ptr<sender>>
-case_c(std::size_t flows, std::chrono::nanoseconds delay, std::size_t bandwidth)
+case_c(std::size_t flows,
+       std::chrono::nanoseconds delay,
+       std::optional<bandwidth<double>> bandwidth)
 {
         std::shared_ptr<sender> s;
 

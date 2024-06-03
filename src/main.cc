@@ -53,7 +53,7 @@ int main()
 
         auto top = nimrod::case_a(1);
 
-        const std::size_t bw_limit = 1024 * 1024 * 1024;
+        const auto bw_limit = nimrod::bandwidth<double>{1'000'000'000'000.0};
 
         run_test_case("case a", nimrod::case_a(1), {}, get_next_packet);
         run_test_case("case b", nimrod::case_b(1, 1), {}, get_next_packet);
@@ -62,19 +62,13 @@ int main()
 
         run_test_case(
                 "case c0",
-                nimrod::case_c(
-                        1,
-                        std::chrono::milliseconds{0},
-                        std::numeric_limits<std::size_t>::max()),
+                nimrod::case_c(1, std::chrono::milliseconds{0}),
                 {},
                 get_next_packet);
 
         run_test_case(
                 "case cd",
-                nimrod::case_c(
-                        1,
-                        std::chrono::milliseconds{20},
-                        std::numeric_limits<std::size_t>::max()),
+                nimrod::case_c(1, std::chrono::milliseconds{20}),
                 std::chrono::milliseconds{20},
                 get_next_packet);
 
