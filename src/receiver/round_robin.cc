@@ -23,4 +23,9 @@ recv_result round_robin::recv(packet * out)
                 }
         }
 }
+
+void round_robin::add_receiver(std::shared_ptr<receiver> r)
+{
+        receivers_.push_back(std::move(r));
+}
 }

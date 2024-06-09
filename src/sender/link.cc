@@ -2,6 +2,8 @@
 #include <chrono>
 #include <condition_variable>
 #include <cstdio>
+#include <iostream>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -11,6 +13,7 @@
 #include "core.hh"
 #include "link.hh"
 #include "packet.hh"
+#include "receiver/limit.hh"
 
 namespace nimrod
 {
@@ -26,7 +29,7 @@ struct link::shared
 {
         std::shared_ptr<sender> next;
         std::chrono::nanoseconds propagation_delay;
-        std::size_t bytes_per_second;
+        std::optional<bandwidth<double>> limit;
 
         clock::time_point prev_packet_done_sending = clock::now();
         std::queue<in_flight> packets;
@@ -37,8 +40,14 @@ struct link::shared
 
         std::chrono::nanoseconds send_time(const packet & p) const
         {
-                return std::chrono::nanoseconds{
-                        p.total_size() / bytes_per_second * std::nano::den};
+                if (!limit.has_value())
+                        return {};
+
+                double seconds = p.total_size() / limit->count;
+                std::chrono::duration<double> s{seconds};
+                return std::chrono::duration_cast<std::chrono::nanoseconds>(s);
+                // return std::chrono::nanoseconds{
+                // p.total_size() / bytes_per_second * std::nano::den};
         }
 };
 
@@ -53,8 +62,8 @@ link::~link()
 link::link(
         std::shared_ptr<sender> next,
         std::chrono::nanoseconds propagation_delay,
-        std::size_t bytes_per_second)
-    : shared_state_{new shared{next, propagation_delay, bytes_per_second}}
+        std::optional<bandwidth<double>> limit)
+    : shared_state_{new shared{next, propagation_delay, limit}}
 {
         shared_state_->worker = std::thread{[shared = shared_state_]
                                             { worker(std::move(shared)); }};
@@ -88,7 +97,8 @@ send_result link::send(packet && p)
                 std::move(p)});
         lock.unlock();
 
-        std::this_thread::sleep_until(start + send_time);
+        if (send_time != std::chrono::seconds{0})
+                std::this_thread::sleep_until(start + send_time);
 
         shared.cond.notify_one();
 
@@ -112,7 +122,7 @@ void link::worker(std::shared_ptr<shared> shared)
 
                 auto & p = shared->packets.front();
 
-                if (p.arrival <= clock::now())
+                if (p.arrival < clock::now())
                 {
                         shared->next->send(std::move(p.packet));
                         shared->packets.pop();

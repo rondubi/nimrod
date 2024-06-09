@@ -2,9 +2,12 @@ cmake_minimum_required(VERSION 3.16)
 project(nimrod VERSION 0.1.0)
 
 add_library(nimrod_core
+    "src/fuse.cc"
     "src/packet.cc"
     "src/queue.cc"
+    "src/topology.cc"
     "src/receiver/round_robin.cc"
+    "src/sender/black_hole.cc"
     "src/sender/fork.cc"
     "src/sender/log.cc"
     "src/sender/link.cc"

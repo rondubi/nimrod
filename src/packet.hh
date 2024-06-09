@@ -43,7 +43,7 @@ public:
 
         packet_kind kind() const { return kind_; }
 
-        ipv4_packet_header & ipv4_header() const;
+        ipv4_packet_header & ipv4_header();
 
         const ipv4_packet_header & ipv4_header() const;
 
@@ -65,7 +65,7 @@ public:
 
 private:
         packet_kind kind_ = packet_kind::none;
-        std::variant<std::nullopt_t, ipv4_packet> packet_{std::nullopt};
+        std::variant<int, ipv4_packet> packet_{0};
         std::function<void(const packet &)> passed_along_callback_;
 };
 }
